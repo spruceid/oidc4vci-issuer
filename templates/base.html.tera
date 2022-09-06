@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>OIDC4VCI Issuer Demo - SpruceID</title>
+  </head>
+  <body>
+    {% block content %}{% endblock content %}
+
+    <style>
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        heihgt: 100vh;
+      }
+
+      body {
+        margin: 0;
+        padding: 4rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </body>
+</html>

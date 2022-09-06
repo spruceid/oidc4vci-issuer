@@ -1,0 +1,28 @@
+[package]
+name = "oidc4vci-issuer"
+version = "0.1.0"
+authors = ["Spruce Systems, Inc."]
+edition = "2021"
+license = "Apache-2.0"
+description = "OIDC4VCI Issuer Example"
+repository = "https://github.com/spruceid/oidc4vci-rs/"
+
+[dependencies]
+ssi = "0.4"
+didkit = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+percent-encoding = { version = "2.1" }
+rand = { version = "0.8" }
+chrono = { version = "0.4", features = ["serde"] }
+base64 = "0.12"
+oidc4vci-rs = { path = "../oidc4vci-rs" }
+rocket = { version = "0.5.0-rc.2", features = ["json"] }
+dotenv = "0.15.0"
+qrcode = "0.12.0"
+image = "0.24.3"
+uuid = { version = "1.1.2", features = ["v4"] }
+
+[dependencies.rocket_dyn_templates]
+version = "0.1.0-rc.1"
+features = ["tera"]
