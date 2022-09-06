@@ -38,7 +38,7 @@ impl oidc4vci_rs::Metadata for Metadata {
 fn index(config: &State<Config>, interface: &State<oidc4vci_rs::SSI>) -> Template {
     let pre_authz_code = oidc4vci_rs::generate_preauthz_code(
         serde_json::from_value(json!({
-            "credential_type": [],
+            "credential_type": ["OpenBadgeCredential"],
             "exp": ssi::vc::VCDateTime::from(Utc::now()),
         }))
         .unwrap(),

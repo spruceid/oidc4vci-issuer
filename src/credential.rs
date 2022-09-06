@@ -24,7 +24,8 @@ pub async fn post(
         metadata.inner(),
         interface.inner(),
     )
-    .await;
+    .await
+    .unwrap();
 
     let did_method = didkit::DID_METHODS.get("key").unwrap();
     let issuer = did_method
@@ -57,8 +58,8 @@ pub async fn post(
             "url": "https://www.jff.org/",
         },
         "credentialSubject": {
-            "type": "AchievementSubject",
             "id": did,
+            "type": "AchievementSubject",
             "achievement": {
                 "criteria": {
                     "narrative": "The first cohort of the JFF Plugfest 1 in May/June of 2021 collaborated to push interoperability of VCs in education forward.",
@@ -70,9 +71,10 @@ pub async fn post(
                 "type": "Achievement"
             },
         },
-    })).unwrap();
+    }))
+    .unwrap();
 
-    let mut credential = ssi::vc::Credential::from_json(&credential).unwrap();
+    let mut credential = ssi::vc::Credential::from_json_unsigned(&credential).unwrap();
 
     let did_resolver = did_method.to_resolver();
     let verification_method =
@@ -83,22 +85,33 @@ pub async fn post(
             .unwrap()
             .to_owned();
 
-    let options = LinkedDataProofOptions {
-        proof_purpose: Some(ProofPurpose::AssertionMethod),
-
-        verification_method: Some(URI::String(verification_method)),
-        ..LinkedDataProofOptions::default()
-    };
-
     let credential = match &credential_request.format {
         oidc4vci_rs::CredentialFormat::JWT => credential
-            .generate_jwt(Some(&interface.jwk), &options, did_resolver)
+            .generate_jwt(
+                Some(&interface.jwk),
+                &LinkedDataProofOptions {
+                    proof_purpose: Some(ProofPurpose::AssertionMethod),
+                    verification_method: Some(URI::String(verification_method)),
+                    checks: None,
+                    created: None,
+                    ..LinkedDataProofOptions::default()
+                },
+                did_resolver,
+            )
             .await
             .unwrap(),
 
         oidc4vci_rs::CredentialFormat::LDP => {
             let proof = credential
-                .generate_proof(&interface.jwk, &options, did_resolver)
+                .generate_proof(
+                    &interface.jwk,
+                    &LinkedDataProofOptions {
+                        proof_purpose: Some(ProofPurpose::AssertionMethod),
+                        verification_method: Some(URI::String(verification_method)),
+                        ..LinkedDataProofOptions::default()
+                    },
+                    did_resolver,
+                )
                 .await
                 .unwrap();
             credential.add_proof(proof);
@@ -111,7 +124,7 @@ pub async fn post(
     Json(
         serde_json::to_value(generate_credential_response(
             &credential_request.format,
-            &serde_json::to_string(&credential).unwrap(),
+            &credential,
         ))
         .unwrap(),
     )
