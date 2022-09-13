@@ -1,4 +1,4 @@
-use chrono::Utc;
+use chrono::{Duration, Utc};
 use oidc4vci_rs::{CredentialFormat, IssuanceRequestParams};
 use qrcode::{render::svg, QrCode};
 use rocket::{get, launch, routes, State};
@@ -39,7 +39,7 @@ fn index(config: &State<Config>, interface: &State<oidc4vci_rs::SSI>) -> Templat
     let pre_authz_code = oidc4vci_rs::generate_preauthz_code(
         serde_json::from_value(json!({
             "credential_type": ["OpenBadgeCredential"],
-            "exp": ssi::vc::VCDateTime::from(Utc::now()),
+            "exp": ssi::vc::VCDateTime::from(Utc::now() + Duration::minutes(5)),
         }))
         .unwrap(),
         interface.inner(),
