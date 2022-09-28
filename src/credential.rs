@@ -2,8 +2,12 @@ use chrono::{Duration, Utc};
 use oidc4vci_rs::{generate_credential_response, CredentialRequest, SSI};
 use rocket::{post, serde::json::Json, State};
 use serde_json::{json, Value};
-use ssi::vc::{
-    get_verification_methods_for_purpose, LinkedDataProofOptions, ProofPurpose, VCDateTime, URI,
+use ssi::{
+    did::Source,
+    jsonld::ContextLoader,
+    vc::{
+        get_verification_methods_for_purpose, LinkedDataProofOptions, ProofPurpose, VCDateTime, URI,
+    },
 };
 use uuid::Uuid;
 
@@ -27,10 +31,8 @@ pub async fn post(
     .await
     .unwrap();
 
-    let did_method = didkit::DID_METHODS.get("key").unwrap();
-    let issuer = did_method
-        .generate(&didkit::Source::Key(&interface.jwk))
-        .unwrap();
+    let did_method = crate::DID_METHODS.get("jwk").unwrap();
+    let issuer = did_method.generate(&Source::Key(&interface.jwk)).unwrap();
 
     let id = Uuid::new_v4().to_string();
     let id = format!("urn:uuid:{}", id);
@@ -111,6 +113,7 @@ pub async fn post(
                         ..LinkedDataProofOptions::default()
                     },
                     did_resolver,
+                    &mut ContextLoader::default(),
                 )
                 .await
                 .unwrap();

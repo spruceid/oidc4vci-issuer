@@ -8,8 +8,9 @@ description = "OIDC4VCI Issuer Example"
 repository = "https://github.com/spruceid/oidc4vci-rs/"
 
 [dependencies]
-ssi = "0.4"
-didkit = "0.4"
+ssi = { path = "../ssi" }
+did-method-key = { path = "../ssi/did-key" }
+did-method-jwk = { path = "../ssi/did-jwk" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 percent-encoding = { version = "2.1" }
@@ -22,6 +23,7 @@ dotenv = "0.15.0"
 qrcode = "0.12.0"
 image = "0.24.3"
 uuid = { version = "1.1.2", features = ["v4"] }
+lazy_static = "1.4"
 
 [dependencies.rocket_dyn_templates]
 version = "0.1.0-rc.1"

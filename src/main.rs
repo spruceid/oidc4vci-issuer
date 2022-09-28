@@ -1,14 +1,25 @@
 use chrono::{Duration, Utc};
+use lazy_static::lazy_static;
 use oidc4vci_rs::{CredentialFormat, IssuanceRequestParams};
 use qrcode::{render::svg, QrCode};
 use rocket::{get, launch, routes, State};
 use rocket_dyn_templates::{context, Template};
 use serde_json::json;
+use ssi::did::DIDMethods;
 
 mod authorization;
 mod configuration;
 mod credential;
 mod token;
+
+lazy_static! {
+    pub static ref DID_METHODS: DIDMethods<'static> = {
+        let mut methods = DIDMethods::default();
+        methods.insert(&did_method_key::DIDKey);
+        methods.insert(&did_method_jwk::DIDJWK);
+        methods
+    };
+}
 
 pub struct Config {
     issuer: String,
