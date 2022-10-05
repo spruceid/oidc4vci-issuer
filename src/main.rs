@@ -1,15 +1,14 @@
-use chrono::{Duration, Utc};
 use lazy_static::lazy_static;
-use oidc4vci_rs::{CredentialFormat, IssuanceRequestParams};
-use qrcode::{render::svg, QrCode};
-use rocket::{get, launch, routes, State};
-use rocket_dyn_templates::{context, Template};
-use serde_json::json;
+use oidc4vci_rs::CredentialFormat;
+use rocket::{catchers, launch, routes};
+use rocket_dyn_templates::Template;
 use ssi::did::DIDMethods;
 
 mod authorization;
 mod configuration;
 mod credential;
+mod development;
+mod error;
 mod token;
 
 lazy_static! {
@@ -45,41 +44,6 @@ impl oidc4vci_rs::Metadata for Metadata {
     }
 }
 
-#[get("/")]
-fn index(config: &State<Config>, interface: &State<oidc4vci_rs::SSI>) -> Template {
-    let pre_authz_code = oidc4vci_rs::generate_preauthz_code(
-        serde_json::from_value(json!({
-            "credential_type": ["OpenBadgeCredential"],
-            "exp": ssi::vc::VCDateTime::from(Utc::now() + Duration::minutes(5)),
-        }))
-        .unwrap(),
-        interface.inner(),
-    )
-    .unwrap();
-
-    let data = oidc4vci_rs::generate_initiate_issuance_request(
-        "openid-initiate-issuance",
-        None,
-        IssuanceRequestParams::new(&config.issuer, "OpenBadgeCredential", &pre_authz_code),
-    );
-
-    let code = QrCode::new(&data).unwrap();
-    let image = code
-        .render()
-        .min_dimensions(256, 256)
-        .dark_color(svg::Color("#000000"))
-        .light_color(svg::Color("#ffffff"))
-        .build();
-
-    Template::render(
-        "index",
-        context! {
-            url: data,
-            image: image,
-        },
-    )
-}
-
 #[launch]
 fn rocket() -> _ {
     dotenv::dotenv().ok();
@@ -100,19 +64,24 @@ fn rocket() -> _ {
 
     let config = Config { issuer };
 
+    let client = redis::Client::open("redis://127.0.0.1/").unwrap();
+
     rocket::build()
         .manage(interface)
         .manage(metadata)
         .manage(config)
+        .manage(client)
         .mount(
             "/",
             routes![
-                index,
+                development::index,
+                development::preauth,
                 credential::post,
                 token::post,
                 configuration::openid,
                 configuration::jwks,
             ],
         )
+        .register("/", catchers![error::default_catcher])
         .attach(Template::fairing())
 }

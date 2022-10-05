@@ -1,4 +1,4 @@
-use oidc4vci_rs::TokenErrorType;
+use oidc4vci_rs::{AuthorizationErrorType, SSI};
 use rocket::{
     async_trait,
     http::Status,
@@ -19,18 +19,42 @@ impl<'r> FromRequest<'r> for AuthorizationToken {
         match token {
             Some(token) => {
                 if !token.starts_with("Bearer ") {
+                    request.local_cache::<Vec<oidc4vci_rs::OIDCError>, _>(|| {
+                        vec![AuthorizationErrorType::InvalidToken.into()]
+                    });
+
                     return Outcome::Failure((
                         Status::Unauthorized,
-                        TokenErrorType::InvalidRequest.into(),
+                        AuthorizationErrorType::InvalidToken.into(),
                     ));
                 }
 
-                Outcome::Success(AuthorizationToken(token[7..].to_string()))
+                let token = token[7..].to_string();
+                let interface = request.rocket().state::<SSI>().unwrap();
+                match oidc4vci_rs::verify_access_token(&token, interface) {
+                    Ok(_) => Outcome::Success(AuthorizationToken(token)),
+                    Err(_) => {
+                        request.local_cache::<Vec<oidc4vci_rs::OIDCError>, _>(|| {
+                            vec![AuthorizationErrorType::InvalidToken.into()]
+                        });
+
+                        Outcome::Failure((
+                            Status::BadRequest,
+                            AuthorizationErrorType::InvalidToken.into(),
+                        ))
+                    }
+                }
             }
-            None => Outcome::Failure((
-                Status::Unauthorized,
-                TokenErrorType::UnauthorizedClient.into(),
-            )),
+            None => {
+                request.local_cache::<Vec<oidc4vci_rs::OIDCError>, _>(|| {
+                    vec![AuthorizationErrorType::InvalidToken.into()]
+                });
+
+                Outcome::Failure((
+                    Status::Unauthorized,
+                    AuthorizationErrorType::InvalidToken.into(),
+                ))
+            }
         }
     }
 }

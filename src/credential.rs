@@ -19,7 +19,7 @@ pub async fn post(
     token: AuthorizationToken,
     metadata: &State<Metadata>,
     interface: &State<SSI>,
-) -> Json<Value> {
+) -> Result<Json<Value>, crate::error::Error> {
     let credential_request = credential_request.into_inner();
 
     let did = oidc4vci_rs::verify_credential_request(
@@ -28,8 +28,7 @@ pub async fn post(
         metadata.inner(),
         interface.inner(),
     )
-    .await
-    .unwrap();
+    .await?;
 
     let did_method = crate::DID_METHODS.get("jwk").unwrap();
     let issuer = did_method.generate(&Source::Key(&interface.jwk)).unwrap();
@@ -87,7 +86,8 @@ pub async fn post(
             .unwrap()
             .to_owned();
 
-    let credential = match &credential_request.format {
+    let format = credential_request.format.unwrap();
+    let credential = match format {
         oidc4vci_rs::CredentialFormat::JWT => credential
             .generate_jwt(
                 Some(&interface.jwk),
@@ -124,11 +124,7 @@ pub async fn post(
         _ => unreachable!(),
     };
 
-    Json(
-        serde_json::to_value(generate_credential_response(
-            &credential_request.format,
-            &credential,
-        ))
-        .unwrap(),
-    )
+    Ok(Json(
+        serde_json::to_value(generate_credential_response(&format, &credential)).unwrap(),
+    ))
 }
