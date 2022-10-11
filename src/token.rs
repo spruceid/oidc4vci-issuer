@@ -67,7 +67,7 @@ pub fn post(
         let err: OIDCError = TokenErrorType::InvalidGrant.into();
         return Err(err.into());
     } else {
-        let _: () = redis::cmd("SETEX")
+        redis::cmd("SETEX")
             .arg(&nonce)
             .arg("300")
             .arg(&nonce)

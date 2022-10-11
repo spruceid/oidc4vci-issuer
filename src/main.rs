@@ -50,6 +50,7 @@ fn rocket() -> _ {
 
     let issuer = std::env::var("ISSUER").expect("Failed to load ISSUER");
     let jwk = std::env::var("JWK").expect("Failed to load JWK");
+    let redis_url = std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1/".to_string());
 
     let interface = oidc4vci_rs::SSI::new(
         serde_json::from_str(&jwk).expect("Failed to parse JWK"),
@@ -64,7 +65,7 @@ fn rocket() -> _ {
 
     let config = Config { issuer };
 
-    let client = redis::Client::open("redis://127.0.0.1/").unwrap();
+    let client = redis::Client::open(redis_url).unwrap();
 
     rocket::build()
         .manage(interface)
