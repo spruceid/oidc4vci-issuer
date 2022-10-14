@@ -478,6 +478,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec8a7b6a70fde80372154c65702f00a0f56f3e1c36abbc6c440484be248856db"
 
 [[package]]
+name = "cacaos"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92680fcbb8e24eaa4640c6deca0042db02da17c8b92fde62a0c517bcb6769d7d"
+dependencies = [
+ "async-trait",
+ "hex",
+ "http",
+ "iri-string",
+ "libipld 0.14.0",
+ "serde",
+ "serde_with 2.0.1",
+ "siwe",
+ "thiserror",
+ "time 0.3.15",
+ "url",
+]
+
+[[package]]
 name = "cache-padded"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -584,6 +603,15 @@ name = "clear_on_drop"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "38508a63f4979f0048febc9966fadbd48e5dab31fd0ec6a3f151bbf4a74f7423"
+dependencies = [
+ "cc",
+]
+
+[[package]]
+name = "cmake"
+version = "0.1.48"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8ad8cef104ac57b68b89df3208164d228503abbdce70f6880ffa3d970e7443a"
 dependencies = [
  "cc",
 ]
@@ -887,6 +915,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4529658bdda7fd6769b8614be250cdcfc3aeb0ee72fe66f9e41e5e5eb73eac02"
+dependencies = [
+ "darling_core 0.14.1",
+ "darling_macro 0.14.1",
+]
+
+[[package]]
 name = "darling_core"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -915,6 +953,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling_core"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "649c91bc01e8b1eac09fb91e8dbc7d517684ca6be8ebc75bb9cafc894f9fdb6f"
+dependencies = [
+ "fnv",
+ "ident_case",
+ "proc-macro2",
+ "quote",
+ "strsim 0.10.0",
+ "syn",
+]
+
+[[package]]
 name = "darling_macro"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -932,6 +984,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c972679f83bdf9c42bd905396b6c3588a843a17f0f16dfcfa3e2c5d57441835"
 dependencies = [
  "darling_core 0.13.4",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "darling_macro"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ddfc69c5bfcbd2fc09a0f38451d2daf0e372e367986a83906d1b0dbc88134fb5"
+dependencies = [
+ "darling_core 0.14.1",
  "quote",
  "syn",
 ]
@@ -1050,7 +1113,7 @@ dependencies = [
 [[package]]
 name = "did-method-jwk"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "async-trait",
  "multibase 0.8.0",
@@ -1063,7 +1126,7 @@ dependencies = [
 [[package]]
 name = "did-method-key"
 version = "0.1.3"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "async-trait",
  "k256",
@@ -1646,6 +1709,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "heck"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2540771e65fc8cb83cd6e8a237f70c319bd5c29f78ed1084ba5d50eeac86f7f9"
+
+[[package]]
 name = "hermit-abi"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1927,6 +1996,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "iri-string"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d0586ad318a04c73acdbad33f67969519b5452c80770c4c72059a686da48a7e"
+dependencies = [
+ "memchr",
+ "serde",
+]
+
+[[package]]
 name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2070,12 +2149,33 @@ dependencies = [
  "async-trait",
  "cached",
  "fnv",
- "libipld-cbor",
- "libipld-cbor-derive",
- "libipld-core",
- "libipld-json",
- "libipld-macro",
- "libipld-pb",
+ "libipld-cbor 0.13.1",
+ "libipld-cbor-derive 0.13.1",
+ "libipld-core 0.13.1",
+ "libipld-json 0.13.1",
+ "libipld-macro 0.13.1",
+ "libipld-pb 0.13.1",
+ "log",
+ "multihash",
+ "parking_lot",
+ "thiserror",
+]
+
+[[package]]
+name = "libipld"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac9c3aa309c260aa2f174bac968901eddc546e9d85950c28eae6a7bec402f926"
+dependencies = [
+ "async-trait",
+ "cached",
+ "fnv",
+ "libipld-cbor 0.14.0",
+ "libipld-cbor-derive 0.14.0",
+ "libipld-core 0.14.0",
+ "libipld-json 0.14.0",
+ "libipld-macro 0.14.0",
+ "libipld-pb 0.14.0",
  "log",
  "multihash",
  "parking_lot",
@@ -2089,7 +2189,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "46b3bbc4f35b8f25eb140d183f33d4610a1eb6531b312f01161fa06693f8c28a"
 dependencies = [
  "byteorder",
- "libipld-core",
+ "libipld-core 0.13.1",
+ "thiserror",
+]
+
+[[package]]
+name = "libipld-cbor"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8dd1ab68c9d26f20c7d0dfea6eecbae8c00359875210001b33ca27d4a02f3d09"
+dependencies = [
+ "byteorder",
+ "libipld-core 0.14.0",
  "thiserror",
 ]
 
@@ -2098,6 +2209,19 @@ name = "libipld-cbor-derive"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6ec17d094f4f62e33e201ded63d911fd0bff3b12121ddc50d611e967f7e6824"
+dependencies = [
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "synstructure",
+]
+
+[[package]]
+name = "libipld-cbor-derive"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69ec2f49393a1347a2d95ebcb248ff75d0d47235919b678036c010a8cd927375"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -2122,12 +2246,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "libipld-core"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d44790246ec6b7314cba745992c23d479d018073e66d49ae40ae1b64e5dd8eb5"
+dependencies = [
+ "anyhow",
+ "cid",
+ "core2",
+ "multibase 0.9.1",
+ "multihash",
+ "thiserror",
+]
+
+[[package]]
 name = "libipld-json"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "415427568962961e21009eb92fd6052de95174423cff9d3c583491858e060f4e"
 dependencies = [
- "libipld-core",
+ "libipld-core 0.13.1",
+ "multihash",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "libipld-json"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18aa481a87f084d98473dd9ece253a9569c762b75f6bbba8217d54e48c9d63b3"
+dependencies = [
+ "libipld-core 0.14.0",
  "multihash",
  "serde",
  "serde_json",
@@ -2139,7 +2289,16 @@ version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6c4cb1056262ef4056ad9e5fb41f252c45f55009888e21b7837ac051f38814a"
 dependencies = [
- "libipld-core",
+ "libipld-core 0.13.1",
+]
+
+[[package]]
+name = "libipld-macro"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "852c011562ae5059b67c3a917f9f5945af5a68df8e39ede4444fff33274d25e2"
+dependencies = [
+ "libipld-core 0.14.0",
 ]
 
 [[package]]
@@ -2148,9 +2307,21 @@ version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b851a08aeff23e1e8df42081ef22052a838e8e39b769fcb7867d2fadd834d2d"
 dependencies = [
- "libipld-core",
- "prost",
- "prost-build",
+ "libipld-core 0.13.1",
+ "prost 0.9.0",
+ "prost-build 0.9.0",
+ "thiserror",
+]
+
+[[package]]
+name = "libipld-pb"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c003be513496578115256a1b4ac7b80d4ece2462c9869dfb736fd30d8bb1d1c0"
+dependencies = [
+ "libipld-core 0.14.0",
+ "prost 0.10.4",
+ "prost-build 0.10.4",
  "thiserror",
 ]
 
@@ -3053,7 +3224,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "444879275cb4fd84958b1a1d5420d15e6fcf7c235fe47f053c9c2a80aceb6001"
 dependencies = [
  "bytes",
- "prost-derive",
+ "prost-derive 0.9.0",
+]
+
+[[package]]
+name = "prost"
+version = "0.10.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71adf41db68aa0daaefc69bb30bcd68ded9b9abaad5d1fbb6304c4fb390e083e"
+dependencies = [
+ "bytes",
+ "prost-derive 0.10.1",
 ]
 
 [[package]]
@@ -3063,14 +3244,36 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62941722fb675d463659e49c4f3fe1fe792ff24fe5bbaa9c08cd3b98a1c354f5"
 dependencies = [
  "bytes",
- "heck",
+ "heck 0.3.3",
  "itertools",
  "lazy_static",
  "log",
  "multimap",
  "petgraph",
- "prost",
- "prost-types",
+ "prost 0.9.0",
+ "prost-types 0.9.0",
+ "regex",
+ "tempfile",
+ "which",
+]
+
+[[package]]
+name = "prost-build"
+version = "0.10.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ae5a4388762d5815a9fc0dea33c56b021cdc8dde0c55e0c9ca57197254b0cab"
+dependencies = [
+ "bytes",
+ "cfg-if 1.0.0",
+ "cmake",
+ "heck 0.4.0",
+ "itertools",
+ "lazy_static",
+ "log",
+ "multimap",
+ "petgraph",
+ "prost 0.10.4",
+ "prost-types 0.10.1",
  "regex",
  "tempfile",
  "which",
@@ -3090,13 +3293,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "prost-derive"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b670f45da57fb8542ebdbb6105a925fe571b67f9e7ed9f47a06a84e72b4e7cc"
+dependencies = [
+ "anyhow",
+ "itertools",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "prost-types"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "534b7a0e836e3c482d2693070f982e39e7611da9695d4d1f5a4b186b51faef0a"
 dependencies = [
  "bytes",
- "prost",
+ "prost 0.9.0",
+]
+
+[[package]]
+name = "prost-types"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d0a014229361011dc8e69c8a1ec6c2e8d0f2af7c91e3ea3f5b2170298461e68"
+dependencies = [
+ "bytes",
+ "prost 0.10.4",
 ]
 
 [[package]]
@@ -3651,7 +3877,23 @@ checksum = "678b5a069e50bf00ecd22d0cd8ddf7c236f68581b03db652061ed5eb13a312ff"
 dependencies = [
  "base64 0.13.0",
  "serde",
- "serde_with_macros",
+ "serde_with_macros 1.5.2",
+]
+
+[[package]]
+name = "serde_with"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "368f2d60d049ea019a84dcd6687b0d1e0030fe663ae105039bdf967ed5e6a9a7"
+dependencies = [
+ "base64 0.13.0",
+ "chrono",
+ "hex",
+ "indexmap",
+ "serde",
+ "serde_json",
+ "serde_with_macros 2.0.1",
+ "time 0.3.15",
 ]
 
 [[package]]
@@ -3661,6 +3903,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e182d6ec6f05393cc0e5ed1bf81ad6db3a8feedf8ee515ecdd369809bcce8082"
 dependencies = [
  "darling 0.13.4",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "serde_with_macros"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ccadfacf6cf10faad22bbadf55986bdd0856edfb5d9210aa1dcf1f516e84e93"
+dependencies = [
+ "darling 0.14.1",
  "proc-macro2",
  "quote",
  "syn",
@@ -3785,6 +4039,36 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7bd3e3206899af3f8b12af284fafc038cc1dc2b41d1b89dd17297221c5d225de"
 
 [[package]]
+name = "siwe"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec4cc2eafb2354c1aeaeac5f53b7726ca4ea5ad16314a0b5ebacb6676f599c2b"
+dependencies = [
+ "hex",
+ "http",
+ "iri-string",
+ "k256",
+ "rand 0.8.5",
+ "sha3",
+ "thiserror",
+ "time 0.3.15",
+]
+
+[[package]]
+name = "siwe-recap"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "afe6254970fe99274b440ba4c5e9891550939e7a3c10274029b2e8a9ab2d5c8b"
+dependencies = [
+ "base64 0.12.3",
+ "iri-string",
+ "serde",
+ "serde_json",
+ "siwe",
+ "thiserror",
+]
+
+[[package]]
 name = "slab"
 version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3867,7 +4151,7 @@ dependencies = [
 [[package]]
 name = "ssi"
 version = "0.4.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "ssi-caips",
  "ssi-contexts",
@@ -3889,7 +4173,7 @@ dependencies = [
 [[package]]
 name = "ssi-caips"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "bs58",
  "ssi-jwk",
@@ -3899,12 +4183,12 @@ dependencies = [
 [[package]]
 name = "ssi-contexts"
 version = "0.1.3"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 
 [[package]]
 name = "ssi-core"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "async-trait",
  "serde",
@@ -3914,7 +4198,7 @@ dependencies = [
 [[package]]
 name = "ssi-crypto"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "bs58",
  "digest 0.9.0",
@@ -3930,7 +4214,7 @@ dependencies = [
 [[package]]
 name = "ssi-dids"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "anyhow",
  "async-std",
@@ -3955,7 +4239,7 @@ dependencies = [
 [[package]]
 name = "ssi-json-ld"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "async-std",
  "chrono",
@@ -3975,7 +4259,7 @@ dependencies = [
 [[package]]
 name = "ssi-jwk"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "base64 0.12.3",
  "blake2b_simd 0.5.11",
@@ -3999,7 +4283,7 @@ dependencies = [
 [[package]]
 name = "ssi-jws"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "base64 0.12.3",
  "blake2",
@@ -4020,7 +4304,7 @@ dependencies = [
 [[package]]
 name = "ssi-jwt"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "chrono",
  "serde",
@@ -4033,7 +4317,7 @@ dependencies = [
 [[package]]
 name = "ssi-ldp"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "async-trait",
  "bs58",
@@ -4062,7 +4346,7 @@ dependencies = [
 [[package]]
 name = "ssi-ssh"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "sshkeys",
  "ssi-jwk",
@@ -4072,7 +4356,7 @@ dependencies = [
 [[package]]
 name = "ssi-tzkey"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "bs58",
  "ed25519-dalek",
@@ -4084,14 +4368,14 @@ dependencies = [
 [[package]]
 name = "ssi-ucan"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "base64 0.12.3",
  "chrono",
- "libipld",
+ "libipld 0.13.1",
  "serde",
  "serde_json",
- "serde_with",
+ "serde_with 1.14.0",
  "ssi-caips",
  "ssi-core",
  "ssi-dids",
@@ -4104,16 +4388,19 @@ dependencies = [
 [[package]]
 name = "ssi-vc"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "async-trait",
  "base64 0.12.3",
  "bitvec",
+ "cacaos",
  "chrono",
  "flate2",
+ "libipld 0.14.0",
  "reqwest",
  "serde",
  "serde_json",
+ "siwe-recap",
  "ssi-core",
  "ssi-dids",
  "ssi-json-ld",
@@ -4127,7 +4414,7 @@ dependencies = [
 [[package]]
 name = "ssi-zcap-ld"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#f17d4c0725c9e6376612230cff830dff97ef7380"
+source = "git+https://github.com/spruceid/ssi?branch=feat/did-jwk#4b960753668cc296667fc96fdaa4e02292a98c1a"
 dependencies = [
  "async-trait",
  "serde",
@@ -4325,6 +4612,7 @@ dependencies = [
  "itoa",
  "libc",
  "num_threads",
+ "serde",
  "time-macros",
 ]
 
