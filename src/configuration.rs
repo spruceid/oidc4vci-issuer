@@ -4,8 +4,7 @@ use serde_json::{json, Value};
 
 use crate::Config;
 
-#[get("/.well-known/openid-configuration")]
-pub fn openid(config: &State<Config>) -> Json<Value> {
+fn get_config(config: &State<Config>) -> Json<Value> {
     Json(json!({
        "issuer": config.issuer,
        "credential_endpoint": format!("{}/credential", config.issuer),
@@ -33,6 +32,16 @@ pub fn openid(config: &State<Config>) -> Json<Value> {
           }
        }
     }))
+}
+
+#[get("/.well-known/openid-configuration")]
+pub fn openid_configuration(config: &State<Config>) -> Json<Value> {
+    get_config(config)
+}
+
+#[get("/.well-known/oauth-authorization-server")]
+pub fn oauth_authorization_server(config: &State<Config>) -> Json<Value> {
+    get_config(config)
 }
 
 #[get("/jwks")]

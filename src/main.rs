@@ -79,7 +79,8 @@ fn rocket() -> _ {
                 development::preauth,
                 credential::post,
                 token::post,
-                configuration::openid,
+                configuration::openid_configuration,
+                configuration::oauth_authorization_server,
                 configuration::jwks,
             ],
         )
