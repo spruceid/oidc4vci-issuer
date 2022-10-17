@@ -2767,7 +2767,7 @@ dependencies = [
 [[package]]
 name = "oidc4vci-rs"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/oidc4vci-rs#07b116f0a24dfdbdd3c44cf0651a1ac236f64ca6"
+source = "git+https://github.com/spruceid/oidc4vci-rs#8695204061ca150a975b6ee6cb085246a4c35edf"
 dependencies = [
  "base64 0.12.3",
  "chrono",
