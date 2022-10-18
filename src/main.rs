@@ -15,7 +15,8 @@ lazy_static! {
     pub static ref DID_METHODS: DIDMethods<'static> = {
         let mut methods = DIDMethods::default();
         methods.insert(&did_method_key::DIDKey);
-        methods.insert(&did_method_jwk::DIDJWK);
+        methods.insert(&did_jwk::DIDJWK);
+        methods.insert(&did_web::DIDWeb);
         methods
     };
 }
