@@ -4,8 +4,7 @@ use serde_json::{json, Value};
 
 use crate::Config;
 
-#[get("/.well-known/verifiable-credentials-server")]
-pub fn verifiable_credentials_server(config: &State<Config>) -> Json<Value> {
+fn metadata(config: &State<Config>) -> Json<Value> {
     Json(json!({
        "issuer": config.issuer,
        "credential_endpoint": format!("{}/credential", config.issuer),
@@ -33,6 +32,21 @@ pub fn verifiable_credentials_server(config: &State<Config>) -> Json<Value> {
           }
        }
     }))
+}
+
+#[get("/.well-known/openid-configuration")]
+pub fn openid_configuration(config: &State<Config>) -> Json<Value> {
+    metadata(config)
+}
+
+#[get("/.well-known/oauth-authorization-server")]
+pub fn oauth_authorization_server(config: &State<Config>) -> Json<Value> {
+    metadata(config)
+}
+
+#[get("/.well-known/openid-credential-issuer")]
+pub fn verifiable_credentials_server(config: &State<Config>) -> Json<Value> {
+    metadata(config)
 }
 
 #[get("/jwks")]
