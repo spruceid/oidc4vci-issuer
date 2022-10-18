@@ -59,7 +59,7 @@ pub fn post(
     let mut conn = nonces.get_connection().map_err(|_| OIDCError::default())?;
 
     let nonce_used: bool = redis::cmd("EXISTS")
-        .arg(&nonce)
+        .arg(nonce)
         .query(&mut conn)
         .map_err(|_| OIDCError::default())?;
 
@@ -68,9 +68,9 @@ pub fn post(
         return Err(err.into());
     } else {
         redis::cmd("SETEX")
-            .arg(&nonce)
+            .arg(nonce)
             .arg("300")
-            .arg(&nonce)
+            .arg(nonce)
             .query(&mut conn)
             .map_err(|_| OIDCError::default())?;
     }
