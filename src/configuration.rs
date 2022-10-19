@@ -57,3 +57,23 @@ pub fn jwks(interface: &State<SSI>) -> Json<Value> {
         "keys" : vec![jwk],
     }))
 }
+
+#[get("/.well-known/did.json")]
+pub fn did_web(config: &State<Config>, interface: &State<SSI>) -> Json<Value> {
+    let Config { issuer, .. } = config.inner();
+
+    let did_web = format!("did:web:{}", issuer);
+
+    Json(json!({
+        "@context": "https://www.w3.org/ns/did/v1",
+        "id": did_web,
+        "verificationMethod": [{
+            "id": format!("{}#controller", did_web),
+            "type": "JsonWebKey2020",
+            "controller": did_web,
+            "publicKeyJwk": interface.jwk.to_public(),
+        }],
+        "authentication": [did_web],
+        "assertionMethod": [did_web],
+    }))
+}

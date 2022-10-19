@@ -11,13 +11,14 @@ use ssi::{
 };
 use uuid::Uuid;
 
-use crate::{authorization::AuthorizationToken, Metadata};
+use crate::{authorization::AuthorizationToken, Config, Metadata};
 
 #[post("/credential", data = "<credential_request>")]
 pub async fn post(
     credential_request: Json<CredentialRequest>,
     token: AuthorizationToken,
     metadata: &State<Metadata>,
+    config: &State<Config>,
     interface: &State<SSI>,
 ) -> Result<Json<Value>, crate::error::Error> {
     let credential_request = credential_request.into_inner();
@@ -30,7 +31,7 @@ pub async fn post(
     )
     .await?;
 
-    let did_method = crate::DID_METHODS.get("jwk").unwrap();
+    let did_method = crate::DID_METHODS.get(&config.did_method).unwrap();
     let issuer = did_method.generate(&Source::Key(&interface.jwk)).unwrap();
 
     let id = Uuid::new_v4().to_string();
