@@ -7,6 +7,14 @@ license = "Apache-2.0"
 description = "OIDC4VCI Issuer Example"
 repository = "https://github.com/spruceid/oidc4vci-rs/"
 
+[lib]
+name = "oidc4vci_issuer"
+path = "src/lib.rs"
+
+[[bin]]
+name = "oidc4vci-issuer"
+path = "src/main.rs"
+
 [dependencies]
 ssi = { git = "https://github.com/spruceid/ssi" }
 did-method-key = { git = "https://github.com/spruceid/ssi" }

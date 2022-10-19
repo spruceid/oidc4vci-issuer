@@ -3,7 +3,7 @@ use oidc4vci_rs::{AccessTokenParams, OIDCError, PreAuthzCode, TokenErrorType, To
 use rocket::{form::Form, post, serde::json::Json, FromForm, State};
 use serde_json::Value;
 
-use crate::Metadata;
+use crate::types::Metadata;
 
 #[derive(FromForm)]
 pub struct TokenQueryParams {
@@ -21,7 +21,7 @@ lazy_static! {
 }
 
 #[post("/token", data = "<query>")]
-pub fn post(
+pub fn post_token(
     query: Form<TokenQueryParams>,
     nonces: &State<redis::Client>,
     metadata: &State<Metadata>,

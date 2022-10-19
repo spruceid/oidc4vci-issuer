@@ -2,7 +2,7 @@ use oidc4vci_rs::SSI;
 use rocket::{get, serde::json::Json, State};
 use serde_json::{json, Value};
 
-use crate::Config;
+use crate::types::Config;
 
 fn metadata(config: &State<Config>) -> Json<Value> {
     Json(json!({

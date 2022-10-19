@@ -14,7 +14,7 @@ pub struct Error(pub OIDCError);
 
 #[rocket::async_trait]
 impl<'r, 'o: 'r> Responder<'r, 'o> for Error {
-    fn respond_to(self, _: &'r rocket::Request<'_>) -> rocket::response::Result<'o> {
+    fn respond_to(self, _: &'r Request<'_>) -> rocket::response::Result<'o> {
         let body = serde_json::to_string(&self.0).unwrap();
 
         Response::build()

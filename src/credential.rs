@@ -11,10 +11,10 @@ use ssi::{
 };
 use uuid::Uuid;
 
-use crate::{authorization::AuthorizationToken, Config, Metadata};
+use crate::{authorization::AuthorizationToken, Config, types::Metadata};
 
 #[post("/credential", data = "<credential_request>")]
-pub async fn post(
+pub async fn post_credential(
     credential_request: Json<CredentialRequest>,
     token: AuthorizationToken,
     metadata: &State<Metadata>,

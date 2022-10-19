@@ -1,4 +1,3 @@
-use lazy_static::lazy_static;
 use oidc4vci_rs::CredentialFormat;
 use rocket::{
     catchers,
@@ -95,7 +94,7 @@ fn rocket() -> _ {
     let method: Method = serde_json::from_str(&format!("\"{}\"", &did_method))
         .expect("Failed to parse DID_METHOD, allowed values: 'key', 'jwk', or 'web'.");
 
-    let metadata = Metadata {
+    let metadata = types::Metadata {
         audience: issuer.to_owned(),
         credential_types: vec!["OpenBadgeCredential".into()],
         formats: vec![CredentialFormat::LDP, CredentialFormat::JWT],
