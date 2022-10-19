@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
 use oidc4vci_rs::{AccessTokenParams, OIDCError, PreAuthzCode, TokenErrorType, TokenType, SSI};
-use rocket::{post, serde::json::Json, FromForm, State};
+use rocket::{form::Form, post, serde::json::Json, FromForm, State};
 use serde_json::Value;
 
 use crate::Metadata;
@@ -20,9 +20,9 @@ lazy_static! {
         vec!["urn:ietf:params:oauth:grant-type:pre-authorized_code".into(),];
 }
 
-#[post("/token?<query..>")]
+#[post("/token", data = "<query>")]
 pub fn post(
-    query: TokenQueryParams,
+    query: Form<TokenQueryParams>,
     nonces: &State<redis::Client>,
     metadata: &State<Metadata>,
     interface: &State<SSI>,
@@ -31,7 +31,7 @@ pub fn post(
         grant_type,
         pre_authz_code,
         pin,
-    } = query;
+    } = query.into_inner();
 
     if !SUPPORTED_TYPES.contains(&grant_type) {
         let err: OIDCError = TokenErrorType::InvalidGrant.into();
