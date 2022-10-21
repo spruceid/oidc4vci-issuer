@@ -102,7 +102,8 @@ pub async fn post(
                 did_resolver,
             )
             .await
-            .unwrap(),
+            .unwrap()
+            .into(),
 
         oidc4vci_rs::CredentialFormat::LDP => {
             let proof = credential
@@ -119,13 +120,13 @@ pub async fn post(
                 .await
                 .unwrap();
             credential.add_proof(proof);
-            serde_json::to_string(&credential).unwrap()
+            serde_json::to_value(&credential).unwrap()
         }
 
         _ => unreachable!(),
     };
 
     Ok(Json(
-        serde_json::to_value(generate_credential_response(&format, &credential)).unwrap(),
+        serde_json::to_value(generate_credential_response(&format, credential)).unwrap(),
     ))
 }

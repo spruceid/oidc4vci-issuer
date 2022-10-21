@@ -78,7 +78,7 @@ pub fn post(
     let credential_type = credential_type.to_single().unwrap();
 
     let token_response = oidc4vci_rs::generate_access_token(
-        AccessTokenParams::new(credential_type, &TokenType::Bearer, 84600),
+        AccessTokenParams::new(vec![credential_type.to_string()], &TokenType::Bearer, 84600),
         interface.inner(),
     )?;
 
