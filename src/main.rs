@@ -3,7 +3,10 @@ use oidc4vci_rs::CredentialFormat;
 use rocket::{catchers, launch, routes};
 use rocket_dyn_templates::Template;
 use serde::{Deserialize, Serialize};
-use ssi::did::DIDMethods;
+use ssi::{
+    did::DIDMethods,
+    jwk::{Params, JWK},
+};
 
 mod authorization;
 mod configuration;
@@ -69,10 +72,27 @@ fn rocket() -> _ {
     let did_method = std::env::var("DID_METHOD").unwrap_or_else(|_| "jwk".to_string());
     let redis_url = std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1/".to_string());
 
-    let interface = oidc4vci_rs::SSI::new(
-        serde_json::from_str(&jwk).expect("Failed to parse JWK"),
-        ssi::jwk::Algorithm::EdDSA,
-    );
+    let jwk: JWK = serde_json::from_str(&jwk).expect("Failed to parse JWK");
+    let algorithm = match &jwk.params {
+        Params::OKP(_) => Ok(ssi::jwk::Algorithm::EdDSA),
+        Params::EC(ec) => {
+            match ec
+                .curve
+                .as_ref()
+                .ok_or_else(|| "Missing curve")
+                .unwrap()
+                .as_str()
+            {
+                "P-256" => Ok(ssi::jwk::Algorithm::ES256),
+                "secp256k1" => Ok(ssi::jwk::Algorithm::ES256K),
+                _ => Err("Unsupported curve"),
+            }
+        }
+        _ => Err("The provided JWK is currently not supported."),
+    }
+    .unwrap();
+
+    let interface = oidc4vci_rs::SSI::new(jwk, algorithm);
 
     let method: Method = serde_json::from_str(&format!("\"{}\"", &did_method))
         .expect("Failed to parse DID_METHOD, allowed values: 'key', 'jwk', or 'web'.");
