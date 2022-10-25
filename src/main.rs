@@ -121,6 +121,6 @@ fn rocket() -> _ {
         .manage(config)
         .manage(client)
         .mount("/", routes)
-        .register("/", catchers![error::default_catcher])
+        .register("/", catchers![error::not_found, error::default_catcher])
         .attach(Template::fairing())
 }

@@ -51,6 +51,11 @@ impl From<OIDCError> for Error {
     }
 }
 
+#[catch(404)]
+pub fn not_found(request: &Request) -> Json<OIDCError> {
+    Json(OIDCError::default().with_desc("route not found"))
+}
+
 #[catch(default)]
 pub fn default_catcher(request: &Request) -> Json<OIDCError> {
     if let Some(err) = request.local_cache::<Vec<OIDCError>, _>(Vec::new).get(0) {
