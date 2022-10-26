@@ -1,6 +1,10 @@
 use lazy_static::lazy_static;
 use oidc4vci_rs::CredentialFormat;
-use rocket::{catchers, launch, routes};
+use rocket::{
+    catchers,
+    fs::{relative, FileServer},
+    launch, routes,
+};
 use rocket_dyn_templates::Template;
 use serde::{Deserialize, Serialize};
 use ssi::{
@@ -141,6 +145,7 @@ fn rocket() -> _ {
         .manage(config)
         .manage(client)
         .mount("/", routes)
+        .mount("/static", FileServer::from(relative!("static")))
         .register("/", catchers![error::not_found, error::default_catcher])
         .attach(Template::fairing())
 }

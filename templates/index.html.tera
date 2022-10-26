@@ -1,13 +1,19 @@
 {% extends "base" %}
 
 {% block content %}
-  <h1>OIDC4VCI Demo Issuer</h1>
+  <h1 class="title">OIDC4VCI Demo Issuer</h1>
 
-  <p>To get started, point your wallet's scanner to the QRCode below:</p>
+  <div class="card">
+    <p class="prompt">To get started, point your wallet's scanner to the QRCode below:</p>
 
-  <div>{{ image | safe }}</div>
+    <div>{{ image | safe }}</div>
 
-  <p>Or click the link below from your mobile browser.</p>
+    <p class="prompt-alt">Or click the link below from your mobile browser.</p>
 
-  <a alt="Initiate Issuance Request" href="{{ url }}">Initiate Issuance Request!</a>
+      <input class="pin" disabled name="pin" value="{{ pin | default (value="PIN disabled") }}"/>
+
+    <a class="initiate" alt="Initiate Issuance Request" href="{{ url }}">
+      <span>Initiate Issuance Request!</span>
+    </a>
+  </div>
 {% endblock content %}

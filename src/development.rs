@@ -1,14 +1,31 @@
 use chrono::{Duration, Utc};
 use oidc4vci_rs::IssuanceRequestParams;
 use qrcode::{render::svg, QrCode};
+use rand::{
+    distributions::{Distribution, Uniform},
+    thread_rng,
+};
 use rocket::{get, post, FromForm, State};
 use rocket_dyn_templates::{context, Template};
 use serde_json::json;
 
-#[get("/")]
-pub fn index(config: &State<crate::Config>, interface: &State<oidc4vci_rs::SSI>) -> Template {
+#[get("/?<pin>")]
+pub fn index(
+    pin: Option<bool>,
+    config: &State<crate::Config>,
+    interface: &State<oidc4vci_rs::SSI>,
+) -> Template {
+    let dist = Uniform::from(0..999999);
+    let user_pin_required = pin.unwrap_or_else(|| false);
+    let pin = if user_pin_required {
+        Some(format!("{:06}", dist.sample(&mut thread_rng())))
+    } else {
+        None
+    };
+
     let pre_authz_code = oidc4vci_rs::generate_preauthz_code(
         serde_json::from_value(json!({
+            "pin": pin,
             "credential_type": ["OpenBadgeCredential"],
             "exp": ssi::vc::VCDateTime::from(Utc::now() + Duration::minutes(5)),
         }))
@@ -20,7 +37,12 @@ pub fn index(config: &State<crate::Config>, interface: &State<oidc4vci_rs::SSI>)
     let data = oidc4vci_rs::generate_initiate_issuance_request(
         "openid-initiate-issuance",
         None,
-        IssuanceRequestParams::new(&config.issuer, "OpenBadgeCredential", &pre_authz_code),
+        IssuanceRequestParams::with_user_pin(
+            &config.issuer,
+            "OpenBadgeCredential",
+            &pre_authz_code,
+            user_pin_required,
+        ),
     );
 
     let code = QrCode::new(&data).unwrap();
@@ -36,6 +58,7 @@ pub fn index(config: &State<crate::Config>, interface: &State<oidc4vci_rs::SSI>)
         context! {
             url: data,
             image: image,
+            pin: pin,
         },
     )
 }
