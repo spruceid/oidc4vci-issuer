@@ -1,18 +1,20 @@
 use lazy_static::lazy_static;
 use oidc4vci_rs::{AccessTokenParams, OIDCError, PreAuthzCode, TokenErrorType, TokenType, SSI};
 use rocket::{form::Form, post, serde::json::Json, FromForm, State};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::types::Metadata;
 
-#[derive(FromForm)]
+#[derive(FromForm, Deserialize, Serialize)]
 pub struct TokenQueryParams {
-    grant_type: String,
+    pub grant_type: String,
 
     #[field(name = "pre-authorized_code")]
-    pre_authz_code: String,
+    #[serde(rename = "pre-authorized_code")]
+    pub pre_authz_code: String,
 
-    pin: Option<String>,
+    pub pin: Option<String>,
 }
 
 lazy_static! {
