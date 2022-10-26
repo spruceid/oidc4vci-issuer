@@ -13,19 +13,32 @@ fn metadata(config: &State<Config>) -> Json<Value> {
        "grant_types_supported": [
           "urn:ietf:params:oauth:grant-type:pre-authorized_code"
        ],
-       "credentials_supported": {
-          "OpenBadgeCredential": {
-             "formats": {
-                "jwt_vc": {
-                   "types": [
-        "https://imsglobal.github.io/openbadges-specification/ob_v3p0.html#OpenBadgeCredential",
-        "https://w3id.org/ngi/OpenBadgeExtendedCredential"
+       "credentials_supported":{
+          "OpenBadgeCredential":{
+             "formats":{
+                "jwt_vc":{
+                   "types":[
+                      "VerifiableCredential",
+                      "OpenBadgeCredential"
                    ],
-                   "binding_methods_supported": [
+                   "cryptographic_binding_methods_supported":[
                       "did"
                    ],
-                   "cryptographic_suites_supported": [
-                      "ES256"
+                   "cryptographic_suites_supported":[
+                      "ES256",
+                      "ES256K"
+                   ]
+                },
+                "ldp_vc":{
+                   "types":[
+                      "VerifiableCredential",
+                      "OpenBadgeCredential"
+                   ],
+                   "cryptographic_binding_methods_supported":[
+                      "did"
+                   ],
+                   "cryptographic_suites_supported":[
+                      "Ed25519Signature2018"
                    ]
                 }
              }
