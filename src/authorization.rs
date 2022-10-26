@@ -21,7 +21,7 @@ impl<'r> FromRequest<'r> for AuthorizationToken {
                 if !token.starts_with("Bearer ") {
                     let err: OIDCError = AuthorizationErrorType::InvalidToken.into();
 
-                    request.local_cache::<Vec<oidc4vci_rs::OIDCError>, _>(|| {
+                    request.local_cache::<Vec<OIDCError>, _>(|| {
                         vec![err
                             .clone()
                             .with_desc("Authorization must contain a Bearer token")]
@@ -37,7 +37,7 @@ impl<'r> FromRequest<'r> for AuthorizationToken {
                     Err(_) => {
                         let err: OIDCError = AuthorizationErrorType::InvalidToken.into();
 
-                        request.local_cache::<Vec<oidc4vci_rs::OIDCError>, _>(|| {
+                        request.local_cache::<Vec<OIDCError>, _>(|| {
                             vec![err.clone().with_desc("Bearer token is invalid")]
                         });
 
@@ -47,7 +47,7 @@ impl<'r> FromRequest<'r> for AuthorizationToken {
             }
             None => {
                 let err: OIDCError = AuthorizationErrorType::InvalidToken.into();
-                request.local_cache::<Vec<oidc4vci_rs::OIDCError>, _>(|| {
+                request.local_cache::<Vec<OIDCError>, _>(|| {
                     vec![err
                         .clone()
                         .with_desc("Authorization header must be present")]

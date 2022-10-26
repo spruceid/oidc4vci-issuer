@@ -11,7 +11,7 @@ use ssi::{
 };
 use uuid::Uuid;
 
-use crate::{authorization::AuthorizationToken, Config, types::Metadata};
+use crate::{authorization::AuthorizationToken, types::{DID_METHODS, Config, Metadata}};
 
 #[post("/credential", data = "<credential_request>")]
 pub async fn post_credential(
@@ -31,7 +31,7 @@ pub async fn post_credential(
     )
     .await?;
 
-    let did_method = crate::DID_METHODS.get(&config.did_method).unwrap();
+    let did_method = DID_METHODS.get(&config.did_method).unwrap();
     let issuer = did_method.generate(&Source::Key(&interface.jwk)).unwrap();
 
     let id = Uuid::new_v4().to_string();

@@ -4,6 +4,7 @@ use rocket::{form::Form, post, serde::json::Json, FromForm, State};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::error::Error;
 use crate::types::Metadata;
 
 #[derive(FromForm, Deserialize, Serialize)]
@@ -28,7 +29,7 @@ pub fn post_token(
     nonces: &State<redis::Client>,
     metadata: &State<Metadata>,
     interface: &State<SSI>,
-) -> Result<Json<Value>, crate::error::Error> {
+) -> Result<Json<Value>, Error> {
     let TokenQueryParams {
         grant_type,
         pre_authz_code,

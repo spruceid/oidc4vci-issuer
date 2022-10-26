@@ -16,11 +16,11 @@ pub mod development;
 pub use development::{PreAuthQueryParams, index, preauth};
 
 pub mod error;
-pub use error::default_catcher;
+pub use error::{Error, default_catcher};
 
 pub mod token;
 pub use token::{TokenQueryParams, post_token};
 
 pub mod types;
-pub use types::{Config, Metadata};
+pub use types::{DID_METHODS, Config, Method, Metadata};
 

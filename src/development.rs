@@ -1,5 +1,6 @@
 use chrono::{Duration, Utc};
 use oidc4vci_rs::{IssuanceRequestParams, SSI};
+use crate::types::Config;
 use qrcode::{render::svg, QrCode};
 use rand::{
     distributions::{Distribution, Uniform},

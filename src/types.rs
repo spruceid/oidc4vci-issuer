@@ -1,7 +1,6 @@
 use lazy_static::lazy_static;
 use oidc4vci_rs::CredentialFormat;
-// use rocket::{catchers, launch, routes};
-// use rocket_dyn_templates::Template;
+use serde::{Deserialize, Serialize};
 use ssi::did::DIDMethods;
 
 lazy_static! {
@@ -14,8 +13,22 @@ lazy_static! {
     };
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Hash, Eq)]
+pub enum Method {
+    #[serde(rename = "key")]
+    Key,
+
+    #[serde(rename = "jwk")]
+    Jwk,
+
+    #[serde(rename = "web")]
+    Web,
+}
+
 pub struct Config {
     pub issuer: String,
+    pub method: Method,
+    pub did_method: String,
 }
 
 pub struct Metadata {
