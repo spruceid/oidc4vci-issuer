@@ -19,7 +19,7 @@ pub mod error;
 pub use error::{Error, default_catcher};
 
 pub mod token;
-pub use token::{TokenQueryParams, post_token};
+pub use token::{ToHashMap, TokenQueryParams, post_token};
 
 pub mod types;
 pub use types::{DID_METHODS, Config, Method, Metadata};

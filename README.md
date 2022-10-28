@@ -51,7 +51,7 @@ this password will be used with `PBES2_HS512_A256KW` `JWE` encryption.
 The `docker-compose` file can be used to run the required Redis instance.
 
 ```bash
-docker compose run redis
+docker compose up -d redis
 ```
 
 If you want to point to a different instance of Redis, you can add the 

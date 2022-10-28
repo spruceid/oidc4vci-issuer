@@ -15,6 +15,16 @@ mod error;
 mod token;
 mod types;
 
+#[rocket::post("/token", data = "<query>")]
+fn post_token_default_op_state(
+    query: rocket::form::Form<token::TokenQueryParams<token::DefaultOpState>>,
+    nonces: &rocket::State<redis::Client>,
+    metadata: &rocket::State<types::Metadata>,
+    interface: &rocket::State<oidc4vci_rs::SSI>,
+) -> Result<rocket::serde::json::Json<serde_json::Value>, error::Error> {
+    token::post_token(query, nonces, metadata, interface)
+}
+
 #[launch]
 fn rocket() -> _ {
     dotenv::dotenv().ok();
@@ -62,7 +72,7 @@ fn rocket() -> _ {
             development::index,
             development::preauth,
             credential::post_credential,
-            token::post_token,
+            post_token_default_op_state,
             configuration::openid_configuration,
             configuration::oauth_authorization_server,
             configuration::verifiable_credentials_server,
@@ -72,7 +82,7 @@ fn rocket() -> _ {
             development::index,
             development::preauth,
             credential::post_credential,
-            token::post_token,
+            post_token_default_op_state,
             configuration::openid_configuration,
             configuration::oauth_authorization_server,
             configuration::verifiable_credentials_server,

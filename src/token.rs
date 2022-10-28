@@ -1,14 +1,28 @@
 use lazy_static::lazy_static;
 use oidc4vci_rs::{AccessTokenParams, OIDCError, PreAuthzCode, TokenErrorType, TokenType, SSI};
-use rocket::{form::Form, post, serde::json::Json, FromForm, State};
+use rocket::{form::{Form, FromForm}, serde::json::Json, State};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashMap;
 
 use crate::error::Error;
 use crate::types::Metadata;
 
+pub trait ToHashMap {
+    fn to_hashmap(&self) -> HashMap<String, Value>;
+}
+
 #[derive(FromForm, Deserialize, Serialize)]
-pub struct TokenQueryParams {
+pub struct DefaultOpState { op_state: Option<String> }
+
+impl ToHashMap for DefaultOpState {
+    fn to_hashmap(&self) -> HashMap<String, Value> {
+        HashMap::new()
+    }
+}
+
+#[derive(FromForm, Deserialize, Serialize)]
+pub struct TokenQueryParams<T: ToHashMap> {
     pub grant_type: String,
 
     #[field(name = "pre-authorized_code")]
@@ -16,6 +30,8 @@ pub struct TokenQueryParams {
     pub pre_authz_code: String,
 
     pub pin: Option<String>,
+
+    pub op_state: Option<T>,
 }
 
 lazy_static! {
@@ -23,9 +39,9 @@ lazy_static! {
         vec!["urn:ietf:params:oauth:grant-type:pre-authorized_code".into(),];
 }
 
-#[post("/token", data = "<query>")]
-pub fn post_token(
-    query: Form<TokenQueryParams>,
+// #[post("/token", data = "<query>")]
+pub fn post_token<T: ToHashMap>(
+    query: Form<TokenQueryParams<T>>,
     nonces: &State<redis::Client>,
     metadata: &State<Metadata>,
     interface: &State<SSI>,
@@ -34,6 +50,7 @@ pub fn post_token(
         grant_type,
         pre_authz_code,
         pin,
+        op_state,
     } = query.into_inner();
 
     if !SUPPORTED_TYPES.contains(&grant_type) {
@@ -83,7 +100,7 @@ pub fn post_token(
     let token_response = oidc4vci_rs::generate_access_token(
         AccessTokenParams::new(
             vec![credential_type.to_string()],
-            None,
+            op_state.map(|x| x.to_hashmap()),
             &TokenType::Bearer,
             84600,
         ),
