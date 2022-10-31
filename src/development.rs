@@ -9,12 +9,28 @@ use rocket::{get, post, FromForm, State};
 use rocket_dyn_templates::{context, Template};
 use serde_json::json;
 
-#[get("/?<pin>")]
-pub fn index(
+#[derive(FromForm)]
+pub struct IndexQueryParams {
+    #[field(name = "pin")]
     pin: Option<bool>,
+
+    #[field(name = "protocol")]
+    protocol: Option<String>,
+
+    #[field(name = "url")]
+    url: Option<String>,
+}
+
+#[get("/?<query..>")]
+pub fn index(
+    query: IndexQueryParams,
     config: &State<crate::Config>,
     interface: &State<oidc4vci_rs::SSI>,
 ) -> Template {
+    let IndexQueryParams {
+        pin, protocol, url, ..
+    } = query;
+
     let dist = Uniform::from(0..999999);
     let user_pin_required = pin.unwrap_or_else(|| false);
     let pin = if user_pin_required {
@@ -35,8 +51,10 @@ pub fn index(
     .unwrap();
 
     let data = oidc4vci_rs::generate_initiate_issuance_request(
-        "openid-initiate-issuance",
-        None,
+        protocol
+            .as_deref()
+            .unwrap_or_else(|| "openid-initiate-issuance"),
+        url.as_deref(),
         IssuanceRequestParams::with_user_pin(
             &config.issuer,
             "OpenBadgeCredential",
