@@ -25,7 +25,7 @@ pub struct IndexQueryParams {
 #[get("/?<query..>")]
 pub fn index(
     query: IndexQueryParams,
-    config: &State<crate::Config>,
+    config: &State<Config>,
     interface: &State<SSI>,
 ) -> Template {
     let IndexQueryParams {
@@ -89,6 +89,7 @@ pub struct PreAuthQueryParams {
     type_: String,
 
     #[field(name = "user_id")]
+    #[allow(dead_code)]
     user_id: String,
 }
 
