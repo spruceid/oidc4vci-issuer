@@ -43,6 +43,9 @@ inside the credential in the `.issuer.url` field.
 
 The `JWK` will be used to create a DID and sign the credentials.
 
+The `JWE_SECRET` will be used to support PIN enabled Issuance Request,
+this password will be used with `PBES2_HS512_A256KW` `JWE` encryption.
+
 ### `docker-compose`
 
 The `docker-compose` file can be used to run the required Redis instance.

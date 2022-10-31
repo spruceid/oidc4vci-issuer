@@ -1,5 +1,5 @@
 use chrono::{Duration, Utc};
-use oidc4vci_rs::IssuanceRequestParams;
+use oidc4vci_rs::{IssuanceRequestParams, SSI};
 use qrcode::{render::svg, QrCode};
 use rand::{
     distributions::{Distribution, Uniform},
@@ -25,14 +25,14 @@ pub struct IndexQueryParams {
 pub fn index(
     query: IndexQueryParams,
     config: &State<crate::Config>,
-    interface: &State<oidc4vci_rs::SSI>,
+    interface: &State<SSI>,
 ) -> Template {
     let IndexQueryParams {
         pin, protocol, url, ..
     } = query;
 
     let dist = Uniform::from(0..999999);
-    let user_pin_required = pin.unwrap_or_else(|| false);
+    let user_pin_required = pin.unwrap_or(false);
     let pin = if user_pin_required {
         Some(format!("{:06}", dist.sample(&mut thread_rng())))
     } else {
@@ -51,9 +51,7 @@ pub fn index(
     .unwrap();
 
     let data = oidc4vci_rs::generate_initiate_issuance_request(
-        protocol
-            .as_deref()
-            .unwrap_or_else(|| "openid-initiate-issuance"),
+        protocol.as_deref().unwrap_or("openid-initiate-issuance"),
         url.as_deref(),
         IssuanceRequestParams::with_user_pin(
             &config.issuer,
@@ -94,7 +92,7 @@ pub struct PreAuthQueryParams {
 }
 
 #[post("/issuer/preauth?<query..>")]
-pub fn preauth(query: PreAuthQueryParams, interface: &State<oidc4vci_rs::SSI>) -> String {
+pub fn preauth(query: PreAuthQueryParams, interface: &State<SSI>) -> String {
     let PreAuthQueryParams { pin, type_, .. } = query;
 
     let pre_authz_code = oidc4vci_rs::generate_preauthz_code(

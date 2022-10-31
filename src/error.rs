@@ -52,7 +52,7 @@ impl From<OIDCError> for Error {
 }
 
 #[catch(404)]
-pub fn not_found(request: &Request) -> Json<OIDCError> {
+pub fn not_found(_: &Request) -> Json<OIDCError> {
     Json(OIDCError::default().with_desc("route not found"))
 }
 

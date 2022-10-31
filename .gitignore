@@ -2,3 +2,4 @@
 /target
 .env
 static/*.otf
+*.pem
