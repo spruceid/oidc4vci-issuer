@@ -1,7 +1,7 @@
 use chrono::{Duration, Utc};
 use oidc4vci_rs::{generate_credential_response, CredentialRequest, SSI};
-use rocket::{post, serde::json::Json, State};
-use serde_json::{json, Value};
+use rocket::{serde::json::Json, State};
+use serde_json::Value;
 use ssi::{
     did::Source,
     jsonld::ContextLoader,
@@ -13,14 +13,18 @@ use uuid::Uuid;
 
 use crate::{authorization::AuthorizationToken, types::{DID_METHODS, Config, Metadata}};
 
-#[post("/credential", data = "<credential_request>")]
-pub async fn post_credential(
+// #[post("/credential", data = "<credential_request>")]
+pub async fn post_credential<F>(
     credential_request: Json<CredentialRequest>,
     token: AuthorizationToken,
     metadata: &State<Metadata>,
     config: &State<Config>,
     interface: &State<SSI>,
-) -> Result<Json<Value>, crate::error::Error> {
+    f: F,
+) -> Result<Json<Value>, crate::error::Error>
+where
+    F: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value,
+{
     let credential_request = credential_request.into_inner();
 
     let did = oidc4vci_rs::verify_credential_request(
@@ -40,46 +44,9 @@ pub async fn post_credential(
     let iat = VCDateTime::from(Utc::now());
     let exp = VCDateTime::from(Utc::now() + Duration::days(1));
 
-    let credential = serde_json::to_string(&json!({
-        "@context": [
-            "https://www.w3.org/2018/credentials/v1",
-            "https://purl.imsglobal.org/spec/ob/v3p0/context.json"
-        ],
-        "id": id,
-        "type": [
-            "VerifiableCredential",
-            "OpenBadgeCredential",
-        ],
-        "name": "JFF x vc-edu PlugFest 2 Interoperability",
-        "issuer": {
-            "type": ["Profile"],
-            "id": issuer,
-            "name": "Jobs for the Future (JFF)",
-            "url": "https://www.jff.org/",
-            "image": "https://w3c-ccg.github.io/vc-ed/plugfest-1-2022/images/JFF_LogoLockup.png"
-        },
-        "issuanceDate": iat,
-        "expirationDate": exp,
-
-        "credentialSubject": {
-            "type": ["AchievementSubject"],
-            "id": did,
-            "achievement": {
-                "id": "urn:uuid:bd6d9316-f7ae-4073-a1e5-2f7f5bd22922",
-                "type": ["Achievement"],
-                "name": "JFF x vc-edu PlugFest 2 Interoperability",
-                "description": "This credential solution supports the use of OBv3 and w3c Verifiable Credentials and is interoperable with at least two other solutions.  This was demonstrated successfully during JFF x vc-edu PlugFest 2.",
-                "criteria": {
-                    "narrative": "Solutions providers earned this badge by demonstrating interoperability between multiple providers based on the OBv3 candidate final standard, with some additional required fields. Credential issuers earning this badge successfully issued a credential into at least two wallets.  Wallet implementers earning this badge successfully displayed credentials issued by at least two different credential issuers."
-                },
-                "image": {
-                    "id": "https://w3c-ccg.github.io/vc-ed/plugfest-2-2022/images/JFF-VC-EDU-PLUGFEST2-badge-image.png",
-                    "type": "Image"
-                }
-            }
-        }
-    }))
-    .unwrap();
+    let credential_json = f(id, issuer.clone(), iat, exp, did);
+    let credential = serde_json::to_string(&credential_json)
+        .unwrap();
 
     let mut credential = ssi::vc::Credential::from_json_unsigned(&credential).unwrap();
 
@@ -123,7 +90,9 @@ pub async fn post_credential(
                     &mut ContextLoader::default(),
                 )
                 .await
-                .unwrap();
+                // .unwrap();
+                // .expect("CredentialFormat::LDP: credential.generate_proof failed");
+                .unwrap_or_else(|e| panic!("CredentialFormat::LDP: credential.generate_proof failed: {:?}", e));
             credential.add_proof(proof);
             serde_json::to_value(&credential).unwrap()
         }
