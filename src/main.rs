@@ -33,47 +33,12 @@ pub async fn post_credential_open_badge(
     config: &rocket::State<types::Config>,
     interface: &rocket::State<oidc4vci_rs::SSI>,
 ) -> Result<rocket::serde::json::Json<serde_json::Value>, error::Error> {
-    credential::post_credential(credential_request, token, metadata, config, interface, |id, issuer, iat, exp, did| {
-        serde_json::json!({
-            "@context": [
-                "https://www.w3.org/2018/credentials/v1",
-                "https://purl.imsglobal.org/spec/ob/v3p0/context.json"
-            ],
-            "id": id,
-            "type": [
-                "VerifiableCredential",
-                "OpenBadgeCredential",
-            ],
-            "name": "JFF x vc-edu PlugFest 2 Interoperability",
-            "issuer": {
-                "type": ["Profile"],
-                "id": issuer,
-                "name": "Jobs for the Future (JFF)",
-                "url": "https://www.jff.org/",
-                "image": "https://w3c-ccg.github.io/vc-ed/plugfest-1-2022/images/JFF_LogoLockup.png"
-            },
-            "issuanceDate": iat,
-            "expirationDate": exp,
-
-            "credentialSubject": {
-                "type": ["AchievementSubject"],
-                "id": did,
-                "achievement": {
-                    "id": "urn:uuid:bd6d9316-f7ae-4073-a1e5-2f7f5bd22922",
-                    "type": ["Achievement"],
-                    "name": "JFF x vc-edu PlugFest 2 Interoperability",
-                    "description": "This credential solution supports the use of OBv3 and w3c Verifiable Credentials and is interoperable with at least two other solutions.  This was demonstrated successfully during JFF x vc-edu PlugFest 2.",
-                    "criteria": {
-                        "narrative": "Solutions providers earned this badge by demonstrating interoperability between multiple providers based on the OBv3 candidate final standard, with some additional required fields. Credential issuers earning this badge successfully issued a credential into at least two wallets.  Wallet implementers earning this badge successfully displayed credentials issued by at least two different credential issuers."
-                    },
-                    "image": {
-                        "id": "https://w3c-ccg.github.io/vc-ed/plugfest-2-2022/images/JFF-VC-EDU-PLUGFEST2-badge-image.png",
-                        "type": "Image"
-                    }
-                }
-            }
-        })
-    }).await
+    credential::post_credential(credential_request,
+                                token,
+                                metadata,
+                                config,
+                                interface,
+                                credential::post_credential_open_badge_json).await
 }
 
 
