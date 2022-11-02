@@ -29,7 +29,7 @@ fn post_token_default_op_state(
         metadata.inner(),
         interface.inner(),
     )
-    .map(|v| Json(v))
+    .map(Json)
 }
 
 #[rocket::post("/credential", data = "<credential_request>")]
@@ -49,7 +49,7 @@ pub async fn post_credential_open_badge(
         &credential::post_credential_open_badge_json,
     )
     .await
-    .map(|v| Json(v))
+    .map(Json)
 }
 
 #[launch]
