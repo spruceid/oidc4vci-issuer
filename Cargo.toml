@@ -22,8 +22,8 @@ did-method-key = { git = "https://github.com/spruceid/ssi" }
 did-jwk = { git = "https://github.com/spruceid/ssi" }
 did-web = { git = "https://github.com/spruceid/ssi" }
 
-# oidc4vci-rs = { git = "https://github.com/spruceid/oidc4vci-rs" }
-oidc4vci-rs = { path = "../oidc4vci-rs" }
+oidc4vci-rs = { git = "https://github.com/spruceid/oidc4vci-rs", branch = "feat/export-params" }
+# oidc4vci-rs = { path = "../oidc4vci-rs" }
 
 async-trait = "0.1.58"
 serde = { version = "1.0", features = ["derive"] }

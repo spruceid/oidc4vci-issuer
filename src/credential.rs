@@ -90,7 +90,8 @@ where
                             config,
                             interface,
                             credential_request_verifier,
-                            generate_credential_json).await;
+                            generate_credential_json,
+                            None::<oidc4vci_rs::ExternalFormatVerifier>).await;
         results.push(result);
     }
 
@@ -101,11 +102,15 @@ where
 /// Parameterized version of oidc4vci_rs::verify_credential_request
 #[async_trait]
 pub trait VerifyCredentialRequest {
-    async fn verify_credential_request(&self,
+    async fn verify_credential_request<F>(&self,
                                        request: &CredentialRequest,
                                        token: &str,
                                        metadata: &Metadata,
-                                       interface: &SSI) -> Result<String, oidc4vci_rs::OIDCError>;
+                                       interface: &SSI,
+                                       external_format_verifier: Option<F>,
+                                       ) -> Result<String, oidc4vci_rs::OIDCError>
+    where
+        F: FnOnce(&str, &str) -> bool + Send;
 }
 
 /// oidc4vci_rs::verify_credential_request singleton for VerifyCredentialRequest
@@ -113,20 +118,28 @@ pub struct OIDC4VCIVerifyCredentialRequest {}
 
 #[async_trait]
 impl VerifyCredentialRequest for OIDC4VCIVerifyCredentialRequest {
-    async fn verify_credential_request(&self,
+    async fn verify_credential_request<F>(&self,
                                        request: &CredentialRequest,
                                        token: &str,
                                        metadata: &Metadata,
-                                       interface: &SSI) -> Result<String, oidc4vci_rs::OIDCError> {
+                                       interface: &SSI,
+                                       external_format_verifier: Option<F>,
+                                       ) -> Result<String, oidc4vci_rs::OIDCError>
+    where
+        F: FnOnce(&str, &str) -> bool + Send,
+
+    {
         oidc4vci_rs::verify_credential_request(request,
                                                token,
                                                metadata,
-                                               interface).await
+                                               interface,
+                                               external_format_verifier,
+                                               ).await
     }
 }
 
 // #[post("/credential", data = "<credential_request>")]
-pub async fn post_credential<F, G>(
+pub async fn post_credential<F, G, H>(
     credential_request: CredentialRequest,
     token: &AuthorizationToken,
     metadata: &Metadata,
@@ -134,10 +147,12 @@ pub async fn post_credential<F, G>(
     interface: &SSI,
     credential_request_verifier: F,
     generate_credential_json: G,
+    external_format_verifier: Option<H>,
 ) -> Result<Value, crate::error::Error>
 where
     F: VerifyCredentialRequest,
     G: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value,
+    H: FnOnce(&str, &str) -> bool + Send,
 {
     println!("credential 1");
 
@@ -146,7 +161,8 @@ where
         &token.0,
         metadata,
         interface,
-        None::<oidc4vci_rs::ExternalFormatVerifier>,
+        external_format_verifier,
+        // None::<oidc4vci_rs::ExternalFormatVerifier>,
     )
     .await?;
 

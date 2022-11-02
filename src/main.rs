@@ -43,6 +43,7 @@ pub async fn post_credential_open_badge(
         interface.inner(),
         credential::OIDC4VCIVerifyCredentialRequest {},
         &credential::post_credential_open_badge_json,
+        None::<oidc4vci_rs::ExternalFormatVerifier>,
     )
     .await
     .map(Json)
