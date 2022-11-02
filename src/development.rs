@@ -1,6 +1,6 @@
+use crate::types::Config;
 use chrono::{Duration, Utc};
 use oidc4vci_rs::{IssuanceRequestParams, SSI};
-use crate::types::Config;
 use qrcode::{render::svg, QrCode};
 use rand::{
     distributions::{Distribution, Uniform},
@@ -23,11 +23,7 @@ pub struct IndexQueryParams {
 }
 
 #[get("/?<query..>")]
-pub fn index(
-    query: IndexQueryParams,
-    config: &State<Config>,
-    interface: &State<SSI>,
-) -> Template {
+pub fn index(query: IndexQueryParams, config: &State<Config>, interface: &State<SSI>) -> Template {
     let IndexQueryParams {
         pin, protocol, url, ..
     } = query;

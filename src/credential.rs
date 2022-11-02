@@ -1,6 +1,5 @@
 use chrono::{Duration, Utc};
 use oidc4vci_rs::{generate_credential_response, CredentialRequest, SSI};
-use rocket::{serde::json::Json, State};
 use serde_json::Value;
 use ssi::{
     did::Source,
@@ -11,9 +10,21 @@ use ssi::{
 };
 use uuid::Uuid;
 
-use crate::{authorization::AuthorizationToken, types::{DID_METHODS, Config, Metadata}};
+use crate::{
+    authorization::AuthorizationToken,
+    types::{Config, Metadata, DID_METHODS},
+};
 
-pub fn post_credential_open_badge_json(id: String, issuer: String, iat: VCDateTime, exp: VCDateTime, did: String) -> Value {
+pub fn post_credential_open_badge_json(
+    id: String,
+    issuer: String,
+    iat: VCDateTime,
+    exp: VCDateTime,
+    did: String,
+) -> Value {
+    let achievement_id = Uuid::new_v4().to_string();
+    let achievement_id = format!("urn:uuid:{}", achievement_id);
+
     serde_json::json!({
         "@context": [
             "https://www.w3.org/2018/credentials/v1",
@@ -39,7 +50,7 @@ pub fn post_credential_open_badge_json(id: String, issuer: String, iat: VCDateTi
             "type": ["AchievementSubject"],
             "id": did,
             "achievement": {
-                "id": "urn:uuid:bd6d9316-f7ae-4073-a1e5-2f7f5bd22922",
+                "id": achievement_id,
                 "type": ["Achievement"],
                 "name": "JFF x vc-edu PlugFest 2 Interoperability",
                 "description": "This credential solution supports the use of OBv3 and w3c Verifiable Credentials and is interoperable with at least two other solutions.  This was demonstrated successfully during JFF x vc-edu PlugFest 2.",
@@ -55,27 +66,43 @@ pub fn post_credential_open_badge_json(id: String, issuer: String, iat: VCDateTi
     })
 }
 
+pub async fn post_credential_mult<F>(
+    credential_requests: Vec<CredentialRequest>,
+    token: &AuthorizationToken,
+    metadata: &Metadata,
+    config: &Config,
+    interface: &SSI,
+    f: &F,
+) -> Vec<Result<Value, crate::error::Error>>
+where
+    F: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value + Copy,
+{
+    let mut results = Vec::with_capacity(credential_requests.len());
+
+    for credential_request in credential_requests {
+        let result =
+            post_credential(credential_request, token, metadata, config, interface, f).await;
+        results.push(result);
+    }
+
+    results
+}
+
 // #[post("/credential", data = "<credential_request>")]
 pub async fn post_credential<F>(
-    credential_request: Json<CredentialRequest>,
-    token: AuthorizationToken,
-    metadata: &State<Metadata>,
-    config: &State<Config>,
-    interface: &State<SSI>,
-    f: F,
-) -> Result<Json<Value>, crate::error::Error>
+    credential_request: CredentialRequest,
+    token: &AuthorizationToken,
+    metadata: &Metadata,
+    config: &Config,
+    interface: &SSI,
+    f: &F,
+) -> Result<Value, crate::error::Error>
 where
-    F: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value,
+    F: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value + Copy,
 {
-    let credential_request = credential_request.into_inner();
-
-    let did = oidc4vci_rs::verify_credential_request(
-        &credential_request,
-        &token.0,
-        metadata.inner(),
-        interface.inner(),
-    )
-    .await?;
+    let did =
+        oidc4vci_rs::verify_credential_request(&credential_request, &token.0, metadata, interface)
+            .await?;
 
     let did_method = DID_METHODS.get(&config.did_method).unwrap();
     let issuer = did_method.generate(&Source::Key(&interface.jwk)).unwrap();
@@ -87,8 +114,7 @@ where
     let exp = VCDateTime::from(Utc::now() + Duration::days(1));
 
     let credential_json = f(id, issuer.clone(), iat, exp, did);
-    let credential = serde_json::to_string(&credential_json)
-        .unwrap();
+    let credential = serde_json::to_string(&credential_json).unwrap();
 
     let mut credential = ssi::vc::Credential::from_json_unsigned(&credential).unwrap();
 
@@ -134,7 +160,12 @@ where
                 .await
                 // .unwrap();
                 // .expect("CredentialFormat::LDP: credential.generate_proof failed");
-                .unwrap_or_else(|e| panic!("CredentialFormat::LDP: credential.generate_proof failed: {:?}", e));
+                .unwrap_or_else(|e| {
+                    panic!(
+                        "CredentialFormat::LDP: credential.generate_proof failed: {:?}",
+                        e
+                    )
+                });
             credential.add_proof(proof);
             serde_json::to_value(&credential).unwrap()
         }
@@ -142,7 +173,5 @@ where
         _ => unreachable!(),
     };
 
-    Ok(Json(
-        serde_json::to_value(generate_credential_response(&format, credential)).unwrap(),
-    ))
+    Ok(serde_json::to_value(generate_credential_response(&format, credential)).unwrap())
 }

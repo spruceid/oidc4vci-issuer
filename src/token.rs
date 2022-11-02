@@ -1,19 +1,20 @@
 use lazy_static::lazy_static;
 use oidc4vci_rs::{AccessTokenParams, OIDCError, PreAuthzCode, TokenErrorType, TokenType, SSI};
-use rocket::{form::{Form, FromForm}, serde::json::Json, State};
+use rocket::form::FromForm;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
-use crate::error::Error;
-use crate::types::Metadata;
+use crate::{error::Error, types::Metadata};
 
 pub trait ToHashMap {
     fn to_hashmap(&self) -> HashMap<String, Value>;
 }
 
 #[derive(FromForm, Deserialize, Serialize)]
-pub struct DefaultOpState { op_state: Option<String> }
+pub struct DefaultOpState {
+    op_state: Option<String>,
+}
 
 impl ToHashMap for DefaultOpState {
     fn to_hashmap(&self) -> HashMap<String, Value> {
@@ -41,18 +42,16 @@ lazy_static! {
 
 // #[post("/token", data = "<query>")]
 pub fn post_token<T: ToHashMap>(
-    query: Form<TokenQueryParams<T>>,
-    nonces: &State<redis::Client>,
-    metadata: &State<Metadata>,
-    interface: &State<SSI>,
-) -> Result<Json<Value>, Error> {
-    let TokenQueryParams {
+    TokenQueryParams {
         grant_type,
         pre_authz_code,
         pin,
         op_state,
-    } = query.into_inner();
-
+    }: TokenQueryParams<T>,
+    nonces: &redis::Client,
+    metadata: &Metadata,
+    interface: &SSI,
+) -> Result<Value, Error> {
     if !SUPPORTED_TYPES.contains(&grant_type) {
         let err: OIDCError = TokenErrorType::InvalidGrant.into();
         return Err(err.into());
@@ -62,12 +61,7 @@ pub fn post_token<T: ToHashMap>(
         credential_type,
         extra,
         ..
-    } = oidc4vci_rs::verify_preauthz_code(
-        &pre_authz_code,
-        pin.as_deref(),
-        metadata.inner(),
-        interface.inner(),
-    )?;
+    } = oidc4vci_rs::verify_preauthz_code(&pre_authz_code, pin.as_deref(), metadata, interface)?;
 
     let nonce = extra.get("nonce");
     if nonce.is_none() {
@@ -104,8 +98,8 @@ pub fn post_token<T: ToHashMap>(
             &TokenType::Bearer,
             84600,
         ),
-        interface.inner(),
+        interface,
     )?;
 
-    Ok(Json(serde_json::to_value(token_response).unwrap()))
+    Ok(serde_json::to_value(token_response).unwrap())
 }

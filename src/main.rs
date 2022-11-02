@@ -3,6 +3,7 @@ use rocket::{
     catchers,
     fs::{relative, FileServer},
     launch, routes,
+    serde::json::Json,
 };
 use rocket_dyn_templates::Template;
 use ssi::jwk::{Params, JWK};
@@ -22,7 +23,13 @@ fn post_token_default_op_state(
     metadata: &rocket::State<types::Metadata>,
     interface: &rocket::State<oidc4vci_rs::SSI>,
 ) -> Result<rocket::serde::json::Json<serde_json::Value>, error::Error> {
-    token::post_token(query, nonces, metadata, interface)
+    token::post_token(
+        query.into_inner(),
+        nonces.inner(),
+        metadata.inner(),
+        interface.inner(),
+    )
+    .map(|v| Json(v))
 }
 
 #[rocket::post("/credential", data = "<credential_request>")]
@@ -33,14 +40,17 @@ pub async fn post_credential_open_badge(
     config: &rocket::State<types::Config>,
     interface: &rocket::State<oidc4vci_rs::SSI>,
 ) -> Result<rocket::serde::json::Json<serde_json::Value>, error::Error> {
-    credential::post_credential(credential_request,
-                                token,
-                                metadata,
-                                config,
-                                interface,
-                                credential::post_credential_open_badge_json).await
+    credential::post_credential(
+        credential_request.into_inner(),
+        &token,
+        metadata.inner(),
+        config.inner(),
+        interface.inner(),
+        &credential::post_credential_open_badge_json,
+    )
+    .await
+    .map(|v| Json(v))
 }
-
 
 #[launch]
 fn rocket() -> _ {
@@ -67,8 +77,9 @@ fn rocket() -> _ {
 
     let interface = oidc4vci_rs::SSI::new(jwk, algorithm, &password);
 
-    let method: oidc4vci_issuer::types::Method = serde_json::from_str(&format!("\"{}\"", &did_method))
-        .expect("Failed to parse DID_METHOD, allowed values: 'key', 'jwk', or 'web'.");
+    let method: oidc4vci_issuer::types::Method =
+        serde_json::from_str(&format!("\"{}\"", &did_method))
+            .expect("Failed to parse DID_METHOD, allowed values: 'key', 'jwk', or 'web'.");
 
     let metadata = oidc4vci_issuer::types::Metadata {
         audience: issuer.to_owned(),
