@@ -67,7 +67,7 @@ pub fn post_credential_open_badge_json(
     })
 }
 
-pub async fn post_credential_mult<F, G>(
+pub async fn post_credential_mult<F, G, H>(
     credential_requests: Vec<CredentialRequest>,
     token: &AuthorizationToken,
     metadata: &Metadata,
@@ -75,10 +75,12 @@ pub async fn post_credential_mult<F, G>(
     interface: &SSI,
     credential_request_verifier: F,
     generate_credential_json: G,
+    external_format_verifier: Option<H>,
 ) -> Vec<Result<Value, crate::error::Error>>
 where
     F: VerifyCredentialRequest + Copy,
     G: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value + Copy,
+    H: FnOnce(&str, &str) -> bool + Send + Copy,
 {
     let mut results = Vec::with_capacity(credential_requests.len());
 
@@ -91,7 +93,7 @@ where
                             interface,
                             credential_request_verifier,
                             generate_credential_json,
-                            None::<oidc4vci_rs::ExternalFormatVerifier>).await;
+                            external_format_verifier).await;
         results.push(result);
     }
 
@@ -110,7 +112,7 @@ pub trait VerifyCredentialRequest {
                                        external_format_verifier: Option<F>,
                                        ) -> Result<String, oidc4vci_rs::OIDCError>
     where
-        F: FnOnce(&str, &str) -> bool + Send;
+        F: FnOnce(&str, &str) -> bool + Send + Copy;
 }
 
 /// oidc4vci_rs::verify_credential_request singleton for VerifyCredentialRequest
@@ -126,7 +128,7 @@ impl VerifyCredentialRequest for OIDC4VCIVerifyCredentialRequest {
                                        external_format_verifier: Option<F>,
                                        ) -> Result<String, oidc4vci_rs::OIDCError>
     where
-        F: FnOnce(&str, &str) -> bool + Send,
+        F: FnOnce(&str, &str) -> bool + Send + Copy,
 
     {
         oidc4vci_rs::verify_credential_request(request,
@@ -152,7 +154,7 @@ pub async fn post_credential<F, G, H>(
 where
     F: VerifyCredentialRequest,
     G: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value,
-    H: FnOnce(&str, &str) -> bool + Send,
+    H: FnOnce(&str, &str) -> bool + Send + Copy,
 {
     println!("credential 1");
 
@@ -205,7 +207,7 @@ where
 
     let format = credential_request.format.unwrap();
 
-    use oidc4vci_rs::{CredentialFormat::*, MaybeUnknownCredentialFormat::Known};
+    use oidc4vci_rs::{CredentialFormat::*, MaybeUnknownCredentialFormat::*};
 
     let credential = match format {
         Known(JWT) => credential
@@ -247,9 +249,14 @@ where
                 });
             credential.add_proof(proof);
             serde_json::to_value(&credential).unwrap()
-        }
+        },
 
-        _ => unreachable!(),
+        Known(_) => unreachable!(),
+
+        Unknown(ref credential_format) => {
+            // TODO: replace with unknown credential format handler
+            serde_json::Value::String(format!("<credential endpoint response, format: {}>", credential_format))
+        },
     };
 
     println!("credential 6");
