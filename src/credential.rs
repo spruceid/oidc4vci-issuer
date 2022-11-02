@@ -1,4 +1,4 @@
-use chrono::{Duration, Utc};
+use chrono::{Duration, DurationRound, Utc};
 use oidc4vci_rs::{generate_credential_response, CredentialRequest, SSI};
 use serde_json::Value;
 use ssi::{
@@ -110,8 +110,13 @@ where
     let id = Uuid::new_v4().to_string();
     let id = format!("urn:uuid:{}", id);
 
-    let iat = VCDateTime::from(Utc::now());
-    let exp = VCDateTime::from(Utc::now() + Duration::days(1));
+    let iat = Utc::now();
+    let iat = iat.duration_trunc(Duration::seconds(1)).unwrap();
+    let iat = VCDateTime::from(iat);
+
+    let exp = Utc::now() + Duration::days(1);
+    let exp = exp.duration_trunc(Duration::seconds(1)).unwrap();
+    let exp = VCDateTime::from(exp);
 
     let credential_json = f(id, issuer.clone(), iat, exp, did);
     let credential = serde_json::to_string(&credential_json).unwrap();
