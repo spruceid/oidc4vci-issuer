@@ -8,13 +8,7 @@ use rocket::{
 use rocket_dyn_templates::Template;
 use ssi::jwk::{Params, JWK};
 
-mod authorization;
-mod configuration;
-mod credential;
-mod development;
-mod error;
-mod token;
-mod types;
+use oidc4vci_issuer::*;
 
 #[rocket::post("/token", data = "<query>")]
 fn post_token_default_op_state(
