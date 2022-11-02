@@ -100,9 +100,14 @@ pub async fn post_credential<F>(
 where
     F: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value + Copy,
 {
-    let did =
-        oidc4vci_rs::verify_credential_request(&credential_request, &token.0, metadata, interface)
-            .await?;
+    let did = oidc4vci_rs::verify_credential_request(
+        &credential_request,
+        &token.0,
+        metadata,
+        interface,
+        None::<oidc4vci_rs::ExternalFormatVerifier>,
+    )
+    .await?;
 
     let did_method = DID_METHODS.get(&config.did_method).unwrap();
     let issuer = did_method.generate(&Source::Key(&interface.jwk)).unwrap();
@@ -133,8 +138,11 @@ where
             .to_owned();
 
     let format = credential_request.format.unwrap();
+
+    use oidc4vci_rs::{CredentialFormat::*, MaybeUnknownCredentialFormat::Known};
+
     let credential = match format {
-        oidc4vci_rs::CredentialFormat::JWT => credential
+        Known(JWT) => credential
             .generate_jwt(
                 Some(&interface.jwk),
                 &LinkedDataProofOptions {
@@ -150,7 +158,7 @@ where
             .unwrap()
             .into(),
 
-        oidc4vci_rs::CredentialFormat::LDP => {
+        Known(LDP) => {
             let proof = credential
                 .generate_proof(
                     &interface.jwk,
