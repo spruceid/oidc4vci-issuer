@@ -22,6 +22,7 @@ fn post_token_default_op_state(
         nonces.inner(),
         metadata.inner(),
         interface.inner(),
+        oidc4vci_rs::verify_preauthz_code,
     )
     .map(Json)
 }
@@ -40,6 +41,7 @@ pub async fn post_credential_open_badge(
         metadata.inner(),
         config.inner(),
         interface.inner(),
+        credential::OIDC4VCIVerifyCredentialRequest {},
         &credential::post_credential_open_badge_json,
     )
     .await

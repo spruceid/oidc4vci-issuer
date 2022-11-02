@@ -22,7 +22,7 @@ impl ToHashMap for DefaultOpState {
     }
 }
 
-#[derive(FromForm, Deserialize, Serialize)]
+#[derive(Debug, FromForm, Deserialize, Serialize)]
 pub struct TokenQueryParams<T: ToHashMap> {
     pub grant_type: String,
 
@@ -41,27 +41,44 @@ lazy_static! {
 }
 
 // #[post("/token", data = "<query>")]
-pub fn post_token<T: ToHashMap>(
-    TokenQueryParams {
+pub fn post_token<T: ToHashMap, F>(
+    query: TokenQueryParams<T>,
+    nonces: &redis::Client,
+    metadata: &Metadata,
+    interface: &SSI,
+    verify_preauthz_code: F,
+) -> Result<Value, Error>
+where
+    F: FnOnce(&str, Option<&str>, &Metadata, &SSI) -> Result<PreAuthzCode, OIDCError>,
+{
+    let TokenQueryParams {
         grant_type,
         pre_authz_code,
         pin,
         op_state,
-    }: TokenQueryParams<T>,
-    nonces: &redis::Client,
-    metadata: &Metadata,
-    interface: &SSI,
-) -> Result<Value, Error> {
+    } = query;
+
+    println!("token 1");
+
     if !SUPPORTED_TYPES.contains(&grant_type) {
         let err: OIDCError = TokenErrorType::InvalidGrant.into();
         return Err(err.into());
     }
 
+    println!("token 2: verify_preauthz_code");
+
     let PreAuthzCode {
         credential_type,
         extra,
         ..
-    } = oidc4vci_rs::verify_preauthz_code(&pre_authz_code, pin.as_deref(), metadata, interface)?;
+    } = verify_preauthz_code(
+        &pre_authz_code,
+        pin.as_deref(),
+        metadata,
+        interface,
+    )?;
+
+    println!("token 3");
 
     let nonce = extra.get("nonce");
     if nonce.is_none() {
@@ -69,13 +86,23 @@ pub fn post_token<T: ToHashMap>(
         return Err(err.into());
     }
 
+    println!("token 4");
+
+    println!("token 4, extra: {:?}", extra);
+    println!("token 4, nonce: {:?}", nonce);
+    println!("token 4, nonces: {:?}", nonces);
+
     let nonce = nonce.unwrap().as_str();
     let mut conn = nonces.get_connection().map_err(|_| OIDCError::default())?;
+
+    println!("token 5");
 
     let nonce_used: bool = redis::cmd("EXISTS")
         .arg(nonce)
         .query(&mut conn)
         .map_err(|_| OIDCError::default())?;
+
+    println!("token 6");
 
     if nonce_used {
         let err: OIDCError = TokenErrorType::InvalidGrant.into();
@@ -89,6 +116,8 @@ pub fn post_token<T: ToHashMap>(
             .map_err(|_| OIDCError::default())?;
     }
 
+    println!("token 7");
+
     let credential_type = credential_type.to_single().unwrap();
 
     let token_response = oidc4vci_rs::generate_access_token(
@@ -100,6 +129,8 @@ pub fn post_token<T: ToHashMap>(
         ),
         interface,
     )?;
+
+    println!("token 8");
 
     Ok(serde_json::to_value(token_response).unwrap())
 }

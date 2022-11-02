@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use chrono::{Duration, DurationRound, Utc};
 use oidc4vci_rs::{generate_credential_response, CredentialRequest, SSI};
 use serde_json::Value;
@@ -66,41 +67,81 @@ pub fn post_credential_open_badge_json(
     })
 }
 
-pub async fn post_credential_mult<F>(
+pub async fn post_credential_mult<F, G>(
     credential_requests: Vec<CredentialRequest>,
     token: &AuthorizationToken,
     metadata: &Metadata,
     config: &Config,
     interface: &SSI,
-    f: &F,
+    credential_request_verifier: F,
+    generate_credential_json: G,
 ) -> Vec<Result<Value, crate::error::Error>>
 where
-    F: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value + Copy,
+    F: VerifyCredentialRequest + Copy,
+    G: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value + Copy,
 {
     let mut results = Vec::with_capacity(credential_requests.len());
 
     for credential_request in credential_requests {
         let result =
-            post_credential(credential_request, token, metadata, config, interface, f).await;
+            post_credential(credential_request,
+                            token,
+                            metadata,
+                            config,
+                            interface,
+                            credential_request_verifier,
+                            generate_credential_json).await;
         results.push(result);
     }
 
     results
 }
 
+
+/// Parameterized version of oidc4vci_rs::verify_credential_request
+#[async_trait]
+pub trait VerifyCredentialRequest {
+    async fn verify_credential_request(&self,
+                                       request: &CredentialRequest,
+                                       token: &str,
+                                       metadata: &Metadata,
+                                       interface: &SSI) -> Result<String, oidc4vci_rs::OIDCError>;
+}
+
+/// oidc4vci_rs::verify_credential_request singleton for VerifyCredentialRequest
+pub struct OIDC4VCIVerifyCredentialRequest {}
+
+#[async_trait]
+impl VerifyCredentialRequest for OIDC4VCIVerifyCredentialRequest {
+    async fn verify_credential_request(&self,
+                                       request: &CredentialRequest,
+                                       token: &str,
+                                       metadata: &Metadata,
+                                       interface: &SSI) -> Result<String, oidc4vci_rs::OIDCError> {
+        oidc4vci_rs::verify_credential_request(request,
+                                               token,
+                                               metadata,
+                                               interface).await
+    }
+}
+
 // #[post("/credential", data = "<credential_request>")]
-pub async fn post_credential<F>(
+pub async fn post_credential<F, G>(
     credential_request: CredentialRequest,
     token: &AuthorizationToken,
     metadata: &Metadata,
     config: &Config,
     interface: &SSI,
-    f: &F,
+    credential_request_verifier: F,
+    generate_credential_json: G,
 ) -> Result<Value, crate::error::Error>
 where
-    F: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value + Copy,
+    F: VerifyCredentialRequest,
+    G: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value,
 {
-    let did = oidc4vci_rs::verify_credential_request(
+    println!("credential 1");
+
+    let did = credential_request_verifier.verify_credential_request(
         &credential_request,
         &token.0,
         metadata,
@@ -108,6 +149,8 @@ where
         None::<oidc4vci_rs::ExternalFormatVerifier>,
     )
     .await?;
+
+    println!("credential 2");
 
     let did_method = DID_METHODS.get(&config.did_method).unwrap();
     let issuer = did_method.generate(&Source::Key(&interface.jwk)).unwrap();
@@ -123,8 +166,13 @@ where
     let exp = exp.duration_trunc(Duration::seconds(1)).unwrap();
     let exp = VCDateTime::from(exp);
 
-    let credential_json = f(id, issuer.clone(), iat, exp, did);
-    let credential = serde_json::to_string(&credential_json).unwrap();
+    println!("credential 3");
+
+    let credential_json = generate_credential_json(id, issuer.clone(), iat, exp, did);
+    let credential = serde_json::to_string(&credential_json)
+        .unwrap();
+
+    println!("credential 4");
 
     let mut credential = ssi::vc::Credential::from_json_unsigned(&credential).unwrap();
 
@@ -136,6 +184,8 @@ where
             .first()
             .unwrap()
             .to_owned();
+
+    println!("credential 5");
 
     let format = credential_request.format.unwrap();
 
@@ -186,5 +236,7 @@ where
         _ => unreachable!(),
     };
 
+    println!("credential 6");
     Ok(serde_json::to_value(generate_credential_response(&format, credential)).unwrap())
+
 }
