@@ -67,40 +67,6 @@ pub fn post_credential_open_badge_json(
     })
 }
 
-pub async fn post_credential_mult<F, G, H>(
-    credential_requests: Vec<CredentialRequest>,
-    token: &AuthorizationToken,
-    metadata: &Metadata,
-    config: &Config,
-    interface: &SSI,
-    credential_request_verifier: F,
-    generate_credential_json: G,
-    external_format_verifier: Option<H>,
-) -> Vec<Result<Value, crate::error::Error>>
-where
-    F: VerifyCredentialRequest + Copy,
-    G: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value + Copy,
-    H: FnOnce(&str, &str) -> bool + Send + Copy,
-{
-    let mut results = Vec::with_capacity(credential_requests.len());
-
-    for credential_request in credential_requests {
-        let result =
-            post_credential(credential_request,
-                            token,
-                            metadata,
-                            config,
-                            interface,
-                            credential_request_verifier,
-                            generate_credential_json,
-                            external_format_verifier).await;
-        results.push(result);
-    }
-
-    results
-}
-
-
 /// Parameterized version of oidc4vci_rs::verify_credential_request
 #[async_trait]
 pub trait VerifyCredentialRequest {
@@ -140,8 +106,57 @@ impl VerifyCredentialRequest for OIDC4VCIVerifyCredentialRequest {
     }
 }
 
+/// Error's with a default oidc4vci_rs::OIDCError reason and the unknown format
+pub fn default_unknown_credential_handler(credential_format: &String,
+                                          _issuer: String,
+                                          _credential: ssi::vc::Credential,
+                                          _did_resolver: &dyn ssi::did_resolve::DIDResolver,
+                                          _verification_method: String,
+                                          _interface: &SSI) -> Result<Value, crate::error::Error> {
+    let mut err: oidc4vci_rs::OIDCError = Default::default();
+    err.description = Some(format!("<credential endpoint, unknown format: {}>", credential_format));
+    Err(From::from(err))
+}
+
+pub async fn post_credential_mult<F, G, H, I>(
+    credential_requests: Vec<CredentialRequest>,
+    token: &AuthorizationToken,
+    metadata: &Metadata,
+    config: &Config,
+    interface: &SSI,
+    credential_request_verifier: F,
+    generate_credential_json: G,
+    external_format_verifier: Option<H>,
+    unknown_credential_handler: I,
+) -> Vec<Result<Value, crate::error::Error>>
+where
+    F: VerifyCredentialRequest + Copy,
+    G: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value + Copy,
+    H: FnOnce(&str, &str) -> bool + Send + Copy,
+    I: FnOnce(&String, String, ssi::vc::Credential, &dyn ssi::did_resolve::DIDResolver, String, &SSI) -> Result<Value, crate::error::Error> + Copy,
+{
+    let mut results = Vec::with_capacity(credential_requests.len());
+
+    for credential_request in credential_requests {
+        let result =
+            post_credential(credential_request,
+                            token,
+                            metadata,
+                            config,
+                            interface,
+                            credential_request_verifier,
+                            generate_credential_json,
+                            external_format_verifier,
+                            unknown_credential_handler,
+                            ).await;
+        results.push(result);
+    }
+
+    results
+}
+
 // #[post("/credential", data = "<credential_request>")]
-pub async fn post_credential<F, G, H>(
+pub async fn post_credential<F, G, H, I>(
     credential_request: CredentialRequest,
     token: &AuthorizationToken,
     metadata: &Metadata,
@@ -150,11 +165,13 @@ pub async fn post_credential<F, G, H>(
     credential_request_verifier: F,
     generate_credential_json: G,
     external_format_verifier: Option<H>,
+    unknown_credential_handler: I,
 ) -> Result<Value, crate::error::Error>
 where
     F: VerifyCredentialRequest,
     G: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value,
     H: FnOnce(&str, &str) -> bool + Send + Copy,
+    I: FnOnce(&String, String, ssi::vc::Credential, &dyn ssi::did_resolve::DIDResolver, String, &SSI) -> Result<Value, crate::error::Error> + Copy,
 {
     println!("credential 1");
 
@@ -254,8 +271,7 @@ where
         Known(_) => unreachable!(),
 
         Unknown(ref credential_format) => {
-            // TODO: replace with unknown credential format handler
-            serde_json::Value::String(format!("<credential endpoint response, format: {}>", credential_format))
+            unknown_credential_handler(credential_format, issuer, credential, did_resolver, verification_method, interface)?
         },
     };
 
@@ -263,3 +279,4 @@ where
     Ok(serde_json::to_value(generate_credential_response(&format, credential)).unwrap())
 
 }
+
