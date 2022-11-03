@@ -118,7 +118,7 @@ where
 
     let token_response = oidc4vci_rs::generate_access_token(
         AccessTokenParams::new(
-            vec![credential_type.to_string()],
+            credential_type.to_string(),
             Some(op_state),
             &TokenType::Bearer,
             84600,

@@ -95,7 +95,6 @@ impl VerifyCredentialRequest for OIDC4VCIVerifyCredentialRequest {
                                        ) -> Result<String, oidc4vci_rs::OIDCError>
     where
         F: FnOnce(&str, &str) -> bool + Send + Copy,
-
     {
         oidc4vci_rs::verify_credential_request(request,
                                                token,
