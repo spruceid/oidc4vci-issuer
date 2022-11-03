@@ -23,7 +23,7 @@ impl ToHashMap for DefaultOpState {
 }
 
 #[derive(Debug, FromForm, Deserialize, Serialize)]
-pub struct TokenQueryParams<T: ToHashMap> {
+pub struct TokenQueryParams {
     pub grant_type: String,
 
     #[field(name = "pre-authorized_code")]
@@ -31,8 +31,6 @@ pub struct TokenQueryParams<T: ToHashMap> {
     pub pre_authz_code: String,
 
     pub pin: Option<String>,
-
-    pub op_state: Option<T>,
 }
 
 lazy_static! {
@@ -41,8 +39,8 @@ lazy_static! {
 }
 
 // #[post("/token", data = "<query>")]
-pub fn post_token<T: ToHashMap, F>(
-    query: TokenQueryParams<T>,
+pub fn post_token<F>(
+    query: TokenQueryParams,
     nonces: &redis::Client,
     metadata: &Metadata,
     interface: &SSI,
@@ -55,12 +53,7 @@ where
         grant_type,
         pre_authz_code,
         pin,
-        op_state,
     } = query;
-
-    let mut op_state_map = op_state
-        .map(|x| x.to_hashmap())
-        .unwrap_or_else(|| HashMap::new());
 
     println!("token 1");
 
@@ -75,25 +68,15 @@ where
         credential_type,
         extra,
         ..
-    } = verify_preauthz_code(
-        &pre_authz_code,
-        pin.as_deref(),
-        metadata,
-        interface,
-    )?;
+    } = verify_preauthz_code(&pre_authz_code, pin.as_deref(), metadata, interface)?;
 
-    if let Some(extra_op_state) = extra.get("op_state") {
-        match extra_op_state {
-            serde_json::Value::Object(extra_op_state_map) => {
-                for (op_state_key, op_state_val) in extra_op_state_map.into_iter() {
-                    op_state_map.insert(op_state_key.clone(), op_state_val.clone());
-                }
-            },
-            _ => {
-                println!("/token op_state dropped because not a JSON map: {:?}", extra_op_state);
-            },
-        }
-    }
+    let op_state: HashMap<String, Value> = match extra.get("op_state") {
+        Some(op_state) => match op_state.as_object() {
+            Some(_) => serde_json::from_value(op_state.to_owned()).unwrap(),
+            None => HashMap::new(),
+        },
+        None => HashMap::new(),
+    };
 
     println!("token 3");
 
@@ -133,16 +116,10 @@ where
 
     let credential_type = credential_type.to_single().unwrap();
 
-    let op_state_map_opt = if op_state_map.is_empty() {
-        None
-    } else {
-        Some(op_state_map)
-    };
-
     let token_response = oidc4vci_rs::generate_access_token(
         AccessTokenParams::new(
             vec![credential_type.to_string()],
-            op_state_map_opt,
+            Some(op_state),
             &TokenType::Bearer,
             84600,
         ),
