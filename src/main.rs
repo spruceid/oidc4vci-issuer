@@ -12,7 +12,7 @@ use oidc4vci_issuer::*;
 
 #[rocket::post("/token", data = "<query>")]
 fn post_token_default_op_state(
-    query: rocket::form::Form<token::TokenQueryParams<token::DefaultOpState>>,
+    query: rocket::form::Form<token::TokenQueryParams>,
     nonces: &rocket::State<redis::Client>,
     metadata: &rocket::State<types::Metadata>,
     interface: &rocket::State<oidc4vci_rs::SSI>,
