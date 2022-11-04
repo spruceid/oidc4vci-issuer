@@ -38,7 +38,6 @@ lazy_static! {
         vec!["urn:ietf:params:oauth:grant-type:pre-authorized_code".into(),];
 }
 
-// #[post("/token", data = "<query>")]
 pub fn post_token<F>(
     query: TokenQueryParams,
     nonces: &redis::Client,
@@ -55,14 +54,10 @@ where
         pin,
     } = query;
 
-    println!("token 1");
-
     if !SUPPORTED_TYPES.contains(&grant_type) {
         let err: OIDCError = TokenErrorType::InvalidGrant.into();
         return Err(err.into());
     }
-
-    println!("token 2: verify_preauthz_code");
 
     let PreAuthzCode {
         credential_type,
@@ -78,27 +73,19 @@ where
         None => HashMap::new(),
     };
 
-    println!("token 3");
-
     let nonce = extra.get("nonce");
     if nonce.is_none() {
         let err: OIDCError = TokenErrorType::InvalidGrant.into();
         return Err(err.into());
     }
 
-    println!("token 4");
-
     let nonce = nonce.unwrap().as_str();
     let mut conn = nonces.get_connection().map_err(|_| OIDCError::default())?;
-
-    println!("token 5");
 
     let nonce_used: bool = redis::cmd("EXISTS")
         .arg(nonce)
         .query(&mut conn)
         .map_err(|_| OIDCError::default())?;
-
-    println!("token 6");
 
     if nonce_used {
         let err: OIDCError = TokenErrorType::InvalidGrant.into();
@@ -112,21 +99,10 @@ where
             .map_err(|_| OIDCError::default())?;
     }
 
-    println!("token 7");
-
-    let credential_type = credential_type.to_single().unwrap();
-
     let token_response = oidc4vci_rs::generate_access_token(
-        AccessTokenParams::new(
-            credential_type.to_string(),
-            Some(op_state),
-            &TokenType::Bearer,
-            84600,
-        ),
+        AccessTokenParams::new(credential_type, Some(op_state), &TokenType::Bearer, 84600),
         interface,
     )?;
-
-    println!("token 8");
 
     Ok(serde_json::to_value(token_response).unwrap())
 }

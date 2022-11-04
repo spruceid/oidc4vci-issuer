@@ -70,13 +70,14 @@ pub fn post_credential_open_badge_json(
 /// Parameterized version of oidc4vci_rs::verify_credential_request
 #[async_trait]
 pub trait VerifyCredentialRequest {
-    async fn verify_credential_request<F>(&self,
-                                       request: &CredentialRequest,
-                                       token: &str,
-                                       metadata: &Metadata,
-                                       interface: &SSI,
-                                       external_format_verifier: Option<F>,
-                                       ) -> Result<String, oidc4vci_rs::OIDCError>
+    async fn verify_credential_request<F>(
+        &self,
+        request: &CredentialRequest,
+        token: &str,
+        metadata: &Metadata,
+        interface: &SSI,
+        external_format_verifier: Option<F>,
+    ) -> Result<String, oidc4vci_rs::OIDCError>
     where
         F: FnOnce(&str, &str) -> bool + Send + Copy;
 }
@@ -86,34 +87,42 @@ pub struct OIDC4VCIVerifyCredentialRequest {}
 
 #[async_trait]
 impl VerifyCredentialRequest for OIDC4VCIVerifyCredentialRequest {
-    async fn verify_credential_request<F>(&self,
-                                       request: &CredentialRequest,
-                                       token: &str,
-                                       metadata: &Metadata,
-                                       interface: &SSI,
-                                       external_format_verifier: Option<F>,
-                                       ) -> Result<String, oidc4vci_rs::OIDCError>
+    async fn verify_credential_request<F>(
+        &self,
+        request: &CredentialRequest,
+        token: &str,
+        metadata: &Metadata,
+        interface: &SSI,
+        external_format_verifier: Option<F>,
+    ) -> Result<String, oidc4vci_rs::OIDCError>
     where
         F: FnOnce(&str, &str) -> bool + Send + Copy,
     {
-        oidc4vci_rs::verify_credential_request(request,
-                                               token,
-                                               metadata,
-                                               interface,
-                                               external_format_verifier,
-                                               ).await
+        oidc4vci_rs::verify_credential_request(
+            request,
+            token,
+            metadata,
+            interface,
+            external_format_verifier,
+        )
+        .await
     }
 }
 
 /// Error's with a default oidc4vci_rs::OIDCError reason and the unknown format
-pub fn default_unknown_credential_handler(credential_format: &String,
-                                          _issuer: String,
-                                          _credential: ssi::vc::Credential,
-                                          _did_resolver: &dyn ssi::did_resolve::DIDResolver,
-                                          _verification_method: String,
-                                          _interface: &SSI) -> Result<Value, crate::error::Error> {
+pub fn default_unknown_credential_handler(
+    credential_format: &String,
+    _issuer: String,
+    _credential: ssi::vc::Credential,
+    _did_resolver: &dyn ssi::did_resolve::DIDResolver,
+    _verification_method: String,
+    _interface: &SSI,
+) -> Result<Value, crate::error::Error> {
     let mut err: oidc4vci_rs::OIDCError = Default::default();
-    err.description = Some(format!("<credential endpoint, unknown format: {}>", credential_format));
+    err.description = Some(format!(
+        "<credential endpoint, unknown format: {}>",
+        credential_format
+    ));
     Err(From::from(err))
 }
 
@@ -132,29 +141,37 @@ where
     F: VerifyCredentialRequest + Copy,
     G: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value + Copy,
     H: FnOnce(&str, &str) -> bool + Send + Copy,
-    I: FnOnce(&String, String, ssi::vc::Credential, &dyn ssi::did_resolve::DIDResolver, String, &SSI) -> Result<Value, crate::error::Error> + Copy,
+    I: FnOnce(
+            &String,
+            String,
+            ssi::vc::Credential,
+            &dyn ssi::did_resolve::DIDResolver,
+            String,
+            &SSI,
+        ) -> Result<Value, crate::error::Error>
+        + Copy,
 {
     let mut results = Vec::with_capacity(credential_requests.len());
 
     for credential_request in credential_requests {
-        let result =
-            post_credential(credential_request,
-                            token,
-                            metadata,
-                            config,
-                            interface,
-                            credential_request_verifier,
-                            generate_credential_json,
-                            external_format_verifier,
-                            unknown_credential_handler,
-                            ).await;
+        let result = post_credential(
+            credential_request,
+            token,
+            metadata,
+            config,
+            interface,
+            credential_request_verifier,
+            generate_credential_json,
+            external_format_verifier,
+            unknown_credential_handler,
+        )
+        .await;
         results.push(result);
     }
 
     results
 }
 
-// #[post("/credential", data = "<credential_request>")]
 pub async fn post_credential<F, G, H, I>(
     credential_request: CredentialRequest,
     token: &AuthorizationToken,
@@ -170,21 +187,25 @@ where
     F: VerifyCredentialRequest,
     G: FnOnce(String, String, VCDateTime, VCDateTime, String) -> Value,
     H: FnOnce(&str, &str) -> bool + Send + Copy,
-    I: FnOnce(&String, String, ssi::vc::Credential, &dyn ssi::did_resolve::DIDResolver, String, &SSI) -> Result<Value, crate::error::Error> + Copy,
+    I: FnOnce(
+            &String,
+            String,
+            ssi::vc::Credential,
+            &dyn ssi::did_resolve::DIDResolver,
+            String,
+            &SSI,
+        ) -> Result<Value, crate::error::Error>
+        + Copy,
 {
-    println!("credential 1");
-
-    let did = credential_request_verifier.verify_credential_request(
-        &credential_request,
-        &token.0,
-        metadata,
-        interface,
-        external_format_verifier,
-        // None::<oidc4vci_rs::ExternalFormatVerifier>,
-    )
-    .await?;
-
-    println!("credential 2");
+    let did = credential_request_verifier
+        .verify_credential_request(
+            &credential_request,
+            &token.0,
+            metadata,
+            interface,
+            external_format_verifier,
+        )
+        .await?;
 
     let did_method = DID_METHODS.get(&config.did_method).unwrap();
     let issuer = did_method.generate(&Source::Key(&interface.jwk)).unwrap();
@@ -200,13 +221,8 @@ where
     let exp = exp.duration_trunc(Duration::seconds(1)).unwrap();
     let exp = VCDateTime::from(exp);
 
-    println!("credential 3");
-
     let credential_json = generate_credential_json(id, issuer.clone(), iat, exp, did);
-    let credential = serde_json::to_string(&credential_json)
-        .unwrap();
-
-    println!("credential 4");
+    let credential = serde_json::to_string(&credential_json).unwrap();
 
     let mut credential = ssi::vc::Credential::from_json_unsigned(&credential).unwrap();
 
@@ -218,8 +234,6 @@ where
             .first()
             .unwrap()
             .to_owned();
-
-    println!("credential 5");
 
     let format = credential_request.format.unwrap();
 
@@ -265,17 +279,19 @@ where
                 });
             credential.add_proof(proof);
             serde_json::to_value(&credential).unwrap()
-        },
+        }
 
         Known(_) => unreachable!(),
 
-        Unknown(ref credential_format) => {
-            unknown_credential_handler(credential_format, issuer, credential, did_resolver, verification_method, interface)?
-        },
+        Unknown(ref credential_format) => unknown_credential_handler(
+            credential_format,
+            issuer,
+            credential,
+            did_resolver,
+            verification_method,
+            interface,
+        )?,
     };
 
-    println!("credential 6");
     Ok(serde_json::to_value(generate_credential_response(&format, credential)).unwrap())
-
 }
-

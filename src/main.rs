@@ -97,7 +97,6 @@ fn rocket() -> _ {
         oidc4vci_issuer::types::Method::Key | oidc4vci_issuer::types::Method::Jwk => routes![
             development::index,
             development::preauth,
-            // credential::post_credential,
             post_credential_open_badge,
             post_token_default_op_state,
             configuration::openid_configuration,
@@ -108,7 +107,6 @@ fn rocket() -> _ {
         oidc4vci_issuer::types::Method::Web => routes![
             development::index,
             development::preauth,
-            // credential::post_credential,
             post_credential_open_badge,
             post_token_default_op_state,
             configuration::openid_configuration,

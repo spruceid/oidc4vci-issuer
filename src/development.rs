@@ -1,5 +1,5 @@
 use crate::types::Config;
-use chrono::{Duration, Utc};
+use chrono::{Duration, DurationRound, Utc};
 use oidc4vci_rs::{IssuanceRequestParams, SSI};
 use qrcode::{render::svg, QrCode};
 use rand::{
@@ -36,11 +36,16 @@ pub fn index(query: IndexQueryParams, config: &State<Config>, interface: &State<
         None
     };
 
+    let exp = ssi::vc::VCDateTime::from(
+        (Utc::now() + Duration::minutes(5))
+            .duration_trunc(Duration::seconds(1))
+            .unwrap(),
+    );
     let pre_authz_code = oidc4vci_rs::generate_preauthz_code(
         serde_json::from_value(json!({
             "pin": pin,
             "credential_type": ["OpenBadgeCredential"],
-            "exp": ssi::vc::VCDateTime::from(Utc::now() + Duration::minutes(5)),
+            "exp": exp,
         }))
         .unwrap(),
         interface.inner(),
@@ -93,11 +98,16 @@ pub struct PreAuthQueryParams {
 pub fn preauth(query: PreAuthQueryParams, interface: &State<SSI>) -> String {
     let PreAuthQueryParams { pin, type_, .. } = query;
 
+    let exp = ssi::vc::VCDateTime::from(
+        (Utc::now() + Duration::minutes(5))
+            .duration_trunc(Duration::seconds(1))
+            .unwrap(),
+    );
     let pre_authz_code = oidc4vci_rs::generate_preauthz_code(
         serde_json::from_value(json!({
             "pin": pin,
             "credential_type": [type_],
-            "exp": ssi::vc::VCDateTime::from(Utc::now() + Duration::minutes(5)),
+            "exp": exp,
         }))
         .unwrap(),
         interface.inner(),
