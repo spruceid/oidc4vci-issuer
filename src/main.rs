@@ -41,10 +41,9 @@ pub async fn post_credential_open_badge(
         metadata.inner(),
         config.inner(),
         interface.inner(),
-        credential::OIDC4VCIVerifyCredentialRequest {},
-        &credential::post_credential_open_badge_json,
-        None::<oidc4vci_rs::ExternalFormatVerifier>,
-        credential::default_unknown_credential_handler,
+        &credential::DefaultRequestVerifier,
+        None::<&()>,
+        &mut credential::DefaultCredentialHandler,
     )
     .await
     .map(Json)
