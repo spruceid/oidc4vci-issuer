@@ -8,6 +8,7 @@ use rand::{
 };
 use rocket::{get, post, FromForm, State};
 use rocket_dyn_templates::{context, Template};
+use serde::Deserialize;
 use serde_json::json;
 
 #[derive(FromForm)]
@@ -81,17 +82,17 @@ pub fn index(query: IndexQueryParams, config: &State<Config>, interface: &State<
     )
 }
 
-#[derive(FromForm)]
+#[derive(Deserialize, FromForm)]
 pub struct PreAuthQueryParams {
     #[field(name = "pin")]
-    pin: Option<String>,
+    pub pin: Option<String>,
 
     #[field(name = "type")]
-    type_: String,
+    pub type_: String,
 
     #[field(name = "user_id")]
     #[allow(dead_code)]
-    user_id: String,
+    pub user_id: String,
 }
 
 #[post("/issuer/preauth?<query..>")]

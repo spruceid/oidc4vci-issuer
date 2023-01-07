@@ -17,10 +17,10 @@ name = "oidc4vci-issuer"
 path = "src/main.rs"
 
 [dependencies]
-ssi = { git = "https://github.com/spruceid/ssi" }
-did-method-key = { git = "https://github.com/spruceid/ssi" }
-did-jwk = { git = "https://github.com/spruceid/ssi" }
-did-web = { git = "https://github.com/spruceid/ssi" }
+ssi = "0.5.0"
+did-method-key = "0.2.0"
+did-jwk = "0.1.0"
+did-web = "0.2.0"
 
 oidc4vci-rs = { git = "https://github.com/spruceid/oidc4vci-rs" }
 
