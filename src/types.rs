@@ -31,6 +31,7 @@ pub struct Config {
     pub did_method: String,
 }
 
+#[derive(Clone)]
 pub struct Metadata {
     pub audience: String,
     pub credential_types: Vec<String>,
