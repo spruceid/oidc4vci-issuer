@@ -16,6 +16,7 @@ fn post_token_default_op_state(
     nonces: &rocket::State<redis::Client>,
     metadata: &rocket::State<types::Metadata>,
     interface: &rocket::State<oidc4vci_rs::SSI>,
+    authorization_pending: &rocket::State<bool>,
 ) -> Result<rocket::serde::json::Json<serde_json::Value>, error::Error> {
     token::post_token(
         query.into_inner(),
@@ -23,6 +24,7 @@ fn post_token_default_op_state(
         metadata.inner(),
         interface.inner(),
         oidc4vci_rs::verify_preauthz_code,
+        **authorization_pending,
     )
     .map(Json)
 }

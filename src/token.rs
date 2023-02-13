@@ -44,6 +44,7 @@ pub fn post_token<F>(
     metadata: &Metadata,
     interface: &SSI,
     verify_preauthz_code: F,
+    authorization_pending: bool,
 ) -> Result<Value, Error>
 where
     F: FnOnce(&str, Option<&str>, &Metadata, &SSI) -> Result<PreAuthzCode, OIDCError>,
@@ -102,6 +103,7 @@ where
     let token_response = oidc4vci_rs::generate_access_token(
         AccessTokenParams::new(credential_type, Some(op_state), &TokenType::Bearer, 84600),
         interface,
+        authorization_pending,
     )?;
 
     Ok(serde_json::to_value(token_response).unwrap())
