@@ -1,3 +1,5 @@
+use oidc4vci_issuer::token::TokenRequest;
+use oidc4vci_issuer::*;
 use oidc4vci_rs::CredentialFormat;
 use rocket::{
     catchers,
@@ -8,23 +10,19 @@ use rocket::{
 use rocket_dyn_templates::Template;
 use ssi::jwk::{Params, JWK};
 
-use oidc4vci_issuer::*;
-
 #[rocket::post("/token", data = "<query>")]
 fn post_token_default_op_state(
-    query: rocket::form::Form<token::TokenQueryParams>,
+    query: rocket::form::Form<TokenRequest>,
     nonces: &rocket::State<redis::Client>,
     metadata: &rocket::State<types::Metadata>,
     interface: &rocket::State<oidc4vci_rs::SSI>,
-    authorization_pending: &rocket::State<bool>,
 ) -> Result<rocket::serde::json::Json<serde_json::Value>, error::Error> {
     token::post_token(
-        query.into_inner(),
+        query.into_inner().inner,
         nonces.inner(),
         metadata.inner(),
         interface.inner(),
         oidc4vci_rs::verify_preauthz_code,
-        **authorization_pending,
     )
     .map(Json)
 }

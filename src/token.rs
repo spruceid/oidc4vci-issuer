@@ -1,11 +1,20 @@
 use lazy_static::lazy_static;
-use oidc4vci_rs::{AccessTokenParams, OIDCError, PreAuthzCode, TokenErrorType, TokenType, SSI};
+use oidc4vci_rs::{
+    AccessTokenParams, OIDCError, PreAuthzCode, TokenErrorType, TokenQueryParams, TokenType, SSI,
+};
 use rocket::form::FromForm;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
 use crate::{error::Error, types::Metadata};
+
+#[derive(Debug, FromForm, Deserialize, Serialize)]
+pub struct TokenRequest {
+    #[serde(flatten)]
+    pub inner: TokenQueryParams,
+    pub authorization_pending: bool,
+}
 
 pub trait ToHashMap: std::fmt::Debug {
     fn to_hashmap(&self) -> HashMap<String, Value>;
@@ -22,17 +31,6 @@ impl ToHashMap for DefaultOpState {
     }
 }
 
-#[derive(Debug, FromForm, Deserialize, Serialize)]
-pub struct TokenQueryParams {
-    pub grant_type: String,
-
-    #[field(name = "pre-authorized_code")]
-    #[serde(rename = "pre-authorized_code")]
-    pub pre_authz_code: String,
-
-    pub pin: Option<String>,
-}
-
 lazy_static! {
     static ref SUPPORTED_TYPES: Vec<String> =
         vec!["urn:ietf:params:oauth:grant-type:pre-authorized_code".into(),];
@@ -44,7 +42,6 @@ pub fn post_token<F>(
     metadata: &Metadata,
     interface: &SSI,
     verify_preauthz_code: F,
-    authorization_pending: bool,
 ) -> Result<Value, Error>
 where
     F: FnOnce(&str, Option<&str>, &Metadata, &SSI) -> Result<PreAuthzCode, OIDCError>,
@@ -103,7 +100,6 @@ where
     let token_response = oidc4vci_rs::generate_access_token(
         AccessTokenParams::new(credential_type, Some(op_state), &TokenType::Bearer, 84600),
         interface,
-        authorization_pending,
     )?;
 
     Ok(serde_json::to_value(token_response).unwrap())
