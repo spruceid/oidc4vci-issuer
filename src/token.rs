@@ -9,13 +9,6 @@ use std::collections::HashMap;
 
 use crate::{error::Error, types::Metadata};
 
-#[derive(Debug, FromForm, Deserialize, Serialize)]
-pub struct TokenRequest {
-    #[serde(flatten)]
-    pub inner: TokenQueryParams,
-    pub authorization_pending: bool,
-}
-
 pub trait ToHashMap: std::fmt::Debug {
     fn to_hashmap(&self) -> HashMap<String, Value>;
 }
