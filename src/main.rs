@@ -1,4 +1,5 @@
-use oidc4vci_rs::CredentialFormat;
+use oidc4vci_issuer::*;
+use oidc4vci_rs::{CredentialFormat, TokenQueryParams};
 use rocket::{
     catchers,
     fs::{relative, FileServer},
@@ -8,11 +9,9 @@ use rocket::{
 use rocket_dyn_templates::Template;
 use ssi::jwk::{Params, JWK};
 
-use oidc4vci_issuer::*;
-
 #[rocket::post("/token", data = "<query>")]
 fn post_token_default_op_state(
-    query: rocket::form::Form<token::TokenQueryParams>,
+    query: rocket::form::Form<TokenQueryParams>,
     nonces: &rocket::State<redis::Client>,
     metadata: &rocket::State<types::Metadata>,
     interface: &rocket::State<oidc4vci_rs::SSI>,

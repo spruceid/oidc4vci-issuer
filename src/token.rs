@@ -1,5 +1,7 @@
 use lazy_static::lazy_static;
-use oidc4vci_rs::{AccessTokenParams, OIDCError, PreAuthzCode, TokenErrorType, TokenType, SSI};
+use oidc4vci_rs::{
+    AccessTokenParams, OIDCError, PreAuthzCode, TokenErrorType, TokenQueryParams, TokenType, SSI,
+};
 use rocket::form::FromForm;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -20,17 +22,6 @@ impl ToHashMap for DefaultOpState {
     fn to_hashmap(&self) -> HashMap<String, Value> {
         HashMap::new()
     }
-}
-
-#[derive(Debug, FromForm, Deserialize, Serialize)]
-pub struct TokenQueryParams {
-    pub grant_type: String,
-
-    #[field(name = "pre-authorized_code")]
-    #[serde(rename = "pre-authorized_code")]
-    pub pre_authz_code: String,
-
-    pub pin: Option<String>,
 }
 
 lazy_static! {

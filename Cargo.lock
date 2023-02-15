@@ -2666,7 +2666,7 @@ dependencies = [
 [[package]]
 name = "oidc4vci-rs"
 version = "0.1.0"
-source = "git+https://github.com/spruceid/oidc4vci-rs#45fbdd8f72e6239156a3e04fc5bc81a6033032d0"
+source = "git+https://github.com/spruceid/oidc4vci-rs#6e304ffabec6038e592dd9e6267fcbf092e8dff1"
 dependencies = [
  "base64 0.12.3",
  "chrono",
@@ -2677,9 +2677,11 @@ dependencies = [
  "lazy_static",
  "percent-encoding",
  "rand 0.8.5",
+ "rocket",
  "serde",
  "serde_json",
  "ssi",
+ "url",
 ]
 
 [[package]]
@@ -4823,6 +4825,7 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]
