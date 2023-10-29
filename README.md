@@ -35,13 +35,21 @@ A `.env` file must be created with the following variables:
 
 ```bash
 ISSUER=http://localhost:9000
-JWK='{"kty":"OKP","crv":"Ed25519","x":"","d":""}'
+JWK='{"kty":"OKP","crv":"Ed25519","x":"<redacted>","d":"<redacted>"}'
+JWE_SECRET=<redacted>
 ```
 
 The `ISSUER` will be used to fill the `oidc-configuration` endpoint and
 inside the credential in the `.issuer.url` field.
 
 The `JWK` will be used to create a DID and sign the credentials.
+
+There are several ways to create your JWK. There are online tools, 
+but those are of course not feasible for production use. Another way is to use [`jwk-generator`][], 
+```bash
+java -jar json-web-key-generator.jar -t EC -c P-256 -u sig
+```
+or openssl with a pem-jwk converter.
 
 The `JWE_SECRET` will be used to support PIN enabled Issuance Request,
 this password will be used with `PBES2_HS512_A256KW` `JWE` encryption.
@@ -82,16 +90,26 @@ port = 8080
 
 For more information on other server options provided by `Rocket` please refer to its documentation.
 
+### Run rocket
+Once the database instance is up and running you have to start the Rocket-based web service itself:
+```bash
+cargo run
+```
+
 ## Example Usage
 
 The following commented bash script is an example of the format and calls made to this issuer.
 
 ```bash
+#!/bin/bash
 # Change URL according to the server you're testing with
 url=http://localhost:9000
 
 # If `uuidgen` is not present in your environment, just substitute by a hardcoded value
-preauth=$(curl -s -X POST $url/issuer/preauth\?type\=OpenBadgeCredential\&user_id\=$\(uuidgen\))
+
+uuid=`uuidgen`
+
+preauth=$(curl -s -X POST $url/issuer/preauth\?type\=OpenBadgeCredential\&user_id\=$uuid)
 
 # This requires `jq` to extract the `access_token` value from the JSON, could be done manually or in other ways
 access_token=$(curl -s -X POST $url/token \
@@ -125,3 +143,4 @@ curl -X POST $url/credential \
 
 [`rocket`]: https://rocket.rs/
 [`oidc4vci-rs`]: https://github.com/spruceid/oidc4vci-rs
+[`jwk-generator`]: https://connect2id.com/products/nimbus-jose-jwt/generator
